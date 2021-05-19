@@ -48,6 +48,5 @@ setup(
         'config-default.toml',
         'config.schema.json',
         'logger.ini'
-    ]},
-    scripts=[join('scripts', 'orchd')]
+    ]}
 )
