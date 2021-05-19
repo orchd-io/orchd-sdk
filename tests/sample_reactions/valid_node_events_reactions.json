@@ -1,0 +1,9 @@
+{
+  "name": "Monitor Container",
+  "handler": "orchd.actions.ContainerMonitor",
+  "triggered_on": ["containerDown", "virtualMachineDown"],
+  "handler_parameters": {
+    "image": "ubuntu",
+    "expose": 80
+  }
+}

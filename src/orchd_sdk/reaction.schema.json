@@ -1,0 +1,28 @@
+{
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "title": "Orchd Agent Action",
+   "type": "object",
+   "properties": {
+      "name": {
+         "description": "Name for the action.",
+         "type": "string"
+      },
+      "handler": {
+         "description": "Type of the class that handles the action.",
+         "type": "string"
+      },
+      "triggered_on": {
+         "description": "Events that triggers the Reaction",
+         "type": "array",
+         "items": {
+            "type": "string"
+         }
+      },
+      "handler_parameters": {
+         "description": "Handler specific parameters.",
+         "type": "object"
+      }
+   },
+   "required": ["name", "handler", "triggered_on"],
+   "additionalProperties": false
+}

@@ -1,0 +1,2 @@
+class ReactorError(Exception):
+    pass
