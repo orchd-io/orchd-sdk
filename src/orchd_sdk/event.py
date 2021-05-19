@@ -1,5 +1,8 @@
 import importlib
+import json
 import uuid
+
+from os import path
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 
@@ -7,6 +10,9 @@ from typing import Dict, Any, List, Union
 
 from rx.core import Observer
 from rx.subject import Subject
+
+REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
+                                 'reaction.schema.json')
 
 
 class Event:
@@ -72,6 +78,7 @@ class Reaction(Observer):
     This class instantiates the reaction handler and subscribes the Reaction
     to the events that triggers it.
     """
+
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
         self.reaction_template = reaction_template
@@ -94,6 +101,17 @@ class Reaction(Observer):
 
     def on_error(self, error: Exception) -> None:
         self.handler.handle_error()
+
+    @staticmethod
+    def schema() -> str:
+        """
+        Load the :class:`ReactionTemplate` schema definition.
+
+        :return: Return the schema as string.
+        """
+        with open(REACTION_SCHEMA_FILE) as fd:
+            schema = json.loads(fd.read())
+        return schema
 
 
 class ReactionsEventBus:
@@ -132,4 +150,3 @@ class DummyReactionHandler(ReactionHandler):
     def handle_error(self) -> None:
         print("DummyReactionHandler.handle_error Called")
         pass
-
