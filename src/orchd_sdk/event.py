@@ -116,7 +116,7 @@ class DummyReaction(Reaction):
     template = ReactionTemplate(
         name='io.orchd.reaction_template.DummyTemplate',
         triggered_on=["io.orchd.events.system.Test"],
-        handler="orchd.reaction.DummyReactionHandler",
+        handler="orchd_sdk.event.DummyReactionHandler",
         handler_parameters=dict(),
         active=True
     )
@@ -131,4 +131,5 @@ class DummyReactionHandler(ReactionHandler):
 
     def handle_error(self) -> None:
         print("DummyReactionHandler.handle_error Called")
+        pass
 
