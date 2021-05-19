@@ -43,10 +43,8 @@ setup(
         '': 'src',
     },
     packages=find_packages(where='src'),
-    package_data={'orchd': [
+    package_data={'orchd_sdk': [
         'VERSION',
-        'config-default.toml',
-        'config.schema.json',
-        'logger.ini'
+        'reaction.schema.json'
     ]}
 )
