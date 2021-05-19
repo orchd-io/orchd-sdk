@@ -108,3 +108,27 @@ class ReactionsEventBus:
 
     def remove_all_reactions(self):
         self._subject.dispose()
+
+
+class DummyReaction(Reaction):
+    """Dummy Reaction used system tests during runtime."""
+
+    template = ReactionTemplate(
+        name='io.orchd.reaction_template.DummyTemplate',
+        triggered_on=["io.orchd.events.system.Test"],
+        handler="orchd.reaction.DummyReactionHandler",
+        handler_parameters=dict(),
+        active=True
+    )
+
+    def __init__(self):
+        super().__init__(DummyReaction.template)
+
+
+class DummyReactionHandler(ReactionHandler):
+    async def handle(self, event: str, reaction: ReactionTemplate) -> None:
+        print("DummyReactionHandler.handle Called")
+
+    def handle_error(self) -> None:
+        print("DummyReactionHandler.handle_error Called")
+
