@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import json
 import uuid
@@ -10,6 +11,8 @@ from typing import Dict, Any, List, Union
 
 from rx.core import Observer
 from rx.subject import Subject
+
+from orchd_sdk.logging import logger
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
@@ -96,8 +99,8 @@ class Reaction(Observer):
 
         return self.handler
 
-    def on_next(self, value: Any) -> None:
-        self.handler.handle(value, self.reaction_template)
+    async def on_next(self, value: Any) -> None:
+        await self.handler.handle(value, self.reaction_template)
 
     def on_error(self, error: Exception) -> None:
         self.handler.handle_error()
@@ -144,9 +147,11 @@ class DummyReaction(Reaction):
 
 
 class DummyReactionHandler(ReactionHandler):
-    async def handle(self, event: str, reaction: ReactionTemplate) -> None:
-        print("DummyReactionHandler.handle Called")
+    async def handle(self, event: Event, reaction: ReactionTemplate) -> None:
+        await asyncio.sleep(2)
+        logger.info(f"DummyReactionHandler.handle Called")
 
-    def handle_error(self) -> None:
-        print("DummyReactionHandler.handle_error Called")
+    async def handle_error(self) -> None:
+        await asyncio.sleep(2)
+        logger.info("DummyReactionHandler.handle_error Called")
         pass
