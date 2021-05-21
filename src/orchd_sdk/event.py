@@ -7,7 +7,7 @@ from os import path
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Callable
 
 from rx.core import Observer
 from rx.subject import Subject
@@ -69,10 +69,6 @@ class ReactionHandler(ABC):
         """
         pass
 
-    @abstractmethod
-    def handle_error(self) -> None:
-        pass
-
 
 class Reaction(Observer):
     """
@@ -86,6 +82,7 @@ class Reaction(Observer):
         super().__init__()
         self.reaction_template = reaction_template
         self.handler = self.create_handler_object()
+        self._loop = asyncio.get_event_loop()
 
     def create_handler_object(self) -> ReactionHandler:
         """Instantiate a :class:`ReactionHandler` indicated
@@ -99,11 +96,8 @@ class Reaction(Observer):
 
         return self.handler
 
-    async def on_next(self, value: Any) -> None:
-        await self.handler.handle(value, self.reaction_template)
-
-    def on_error(self, error: Exception) -> None:
-        self.handler.handle_error()
+    def on_next(self, value: Any) -> None:
+        self._loop.create_task(self.handler.handle(value, self.reaction_template))
 
     @staticmethod
     def schema() -> str:
@@ -122,7 +116,7 @@ class ReactionsEventBus:
         self._subject = Subject()
 
     def register_reaction(self, reaction: Reaction):
-        self._subject.subscribe(reaction)
+        self._subject.subscribe(reaction.on_next)
 
     def event(self, event_: Event):
         self._subject.on_next(event_)
@@ -147,11 +141,7 @@ class DummyReaction(Reaction):
 
 
 class DummyReactionHandler(ReactionHandler):
-    async def handle(self, event: Event, reaction: ReactionTemplate) -> None:
+    async def handle(self, event: Event, reaction: ReactionTemplate,
+                     ) -> Any:
         await asyncio.sleep(2)
         logger.info(f"DummyReactionHandler.handle Called")
-
-    async def handle_error(self) -> None:
-        await asyncio.sleep(2)
-        logger.info("DummyReactionHandler.handle_error Called")
-        pass
