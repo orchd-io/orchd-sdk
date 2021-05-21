@@ -4,3 +4,4 @@
 .mypy_cache
 orchd_sdk.egg-info
 dist
+*.pyc

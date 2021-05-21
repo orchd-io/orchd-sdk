@@ -61,7 +61,7 @@ class ReactionHandler(ABC):
     """
 
     @abstractmethod
-    async def handle(self, event: Event, reaction: ReactionTemplate) -> None:
+    def handle(self, event: Event, reaction: ReactionTemplate) -> None:
         """
         Code to be executed as an reaction to an event.
 
@@ -92,7 +92,7 @@ class Reaction(Observer):
         class_name = class_parts.pop()
         module_name = '.'.join(class_parts)
 
-        if module_name not in sys.modules:
+        if self.reaction_template.handler not in sys.modules:
             HandlerClass = getattr(importlib.import_module(module_name), class_name)
             self.handler = HandlerClass()
 
@@ -101,7 +101,7 @@ class Reaction(Observer):
     def on_next(self, event: Event) -> None:
         if event.event_name in self.reaction_template.triggered_on or \
                 '' in self.reaction_template.triggered_on:
-            self._loop.create_task(self.handler.handle(event, self.reaction_template))
+            self.handler.handle(event, self.reaction_template)
 
     @staticmethod
     def schema() -> str:
