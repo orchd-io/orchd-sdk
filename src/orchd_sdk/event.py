@@ -60,7 +60,7 @@ class ReactionHandler(ABC):
     """
 
     @abstractmethod
-    async def handle(self, event: str, reaction: ReactionTemplate) -> None:
+    async def handle(self, event: Event, reaction: ReactionTemplate) -> None:
         """
         Code to be executed as an reaction to an event.
 
@@ -96,8 +96,9 @@ class Reaction(Observer):
 
         return self.handler
 
-    def on_next(self, value: Any) -> None:
-        self._loop.create_task(self.handler.handle(value, self.reaction_template))
+    def on_next(self, event: Event) -> None:
+        if event.event_name in self.reaction_template.triggered_on:
+            self._loop.create_task(self.handler.handle(event, self.reaction_template))
 
     @staticmethod
     def schema() -> str:

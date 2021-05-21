@@ -36,3 +36,7 @@ class TestReactionHandler:
         with patch("orchd_sdk.event.DummyReactionHandler.handle") as mock:
             event_bus.event(Event('io.orchd.events.system.Test', ""))
             mock.assert_called_once()
+            mock.reset_mock()
+            event_bus.event(Event('io.orchd.events.system.WrongType', ""))
+            mock.assert_not_called()
+
