@@ -1,13 +1,14 @@
 import asyncio
 import importlib
 import json
+import sys
 import uuid
 
 from os import path
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 
-from typing import Dict, Any, List, Union, Callable
+from typing import Dict, Any, List, Union
 
 from rx.core import Observer
 from rx.subject import Subject
@@ -91,13 +92,15 @@ class Reaction(Observer):
         class_name = class_parts.pop()
         module_name = '.'.join(class_parts)
 
-        HandlerClass = getattr(importlib.import_module(module_name), class_name)
-        self.handler = HandlerClass()
+        if module_name not in sys.modules:
+            HandlerClass = getattr(importlib.import_module(module_name), class_name)
+            self.handler = HandlerClass()
 
         return self.handler
 
     def on_next(self, event: Event) -> None:
-        if event.event_name in self.reaction_template.triggered_on:
+        if event.event_name in self.reaction_template.triggered_on or \
+                '' in self.reaction_template.triggered_on:
             self._loop.create_task(self.handler.handle(event, self.reaction_template))
 
     @staticmethod
