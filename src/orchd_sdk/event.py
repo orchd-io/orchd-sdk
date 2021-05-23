@@ -19,12 +19,13 @@ REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
 
 
+@dataclass()
 class Event:
     event_name: str
     data: Dict[str, str]
+    id: str = field(default=str(uuid.uuid4()))
 
     def __init__(self, event_name: str, data: Any):
-        self.id = str(uuid.uuid4())
         self.event_name = event_name
         self.data = data
 
@@ -92,9 +93,10 @@ class Reaction(Observer):
         class_name = class_parts.pop()
         module_name = '.'.join(class_parts)
 
-        if self.reaction_template.handler not in sys.modules:
-            HandlerClass = getattr(importlib.import_module(module_name), class_name)
-            self.handler = HandlerClass()
+        if module_name not in sys.modules:
+            importlib.import_module(module_name)
+        HandlerClass = getattr(sys.modules.get(module_name), class_name)
+        self.handler = HandlerClass()
 
         return self.handler
 
