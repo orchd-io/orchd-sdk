@@ -3,8 +3,9 @@ from unittest.mock import patch
 import pytest
 import asyncio
 import datetime
-from orchd_sdk.event import DummyReactionHandler, Event, DummyReaction, \
+from orchd_sdk.event import DummyReactionHandler, DummyReaction, \
     ReactionsEventBus
+from orchd_sdk.models import Event
 from orchd_sdk.logging import logger
 
 

@@ -1,5 +1,6 @@
 {
-  "name": "Monitor Container",
+  "name": "orchd.MonitorContainer",
+  "version": "1.0",
   "handler": "orchd.actions.ContainerMonitor",
   "triggered_on": ["containerDown", "virtualMachineDown"],
   "handler_parameters": {

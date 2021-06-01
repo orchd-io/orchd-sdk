@@ -2,58 +2,20 @@ import asyncio
 import importlib
 import json
 import sys
-import uuid
 
 from os import path
 from abc import abstractmethod, ABC
-from dataclasses import dataclass, field
 
-from typing import Dict, Any, List, Union
+from typing import Any
 
 from rx.core import Observer
 from rx.subject import Subject
 
 from orchd_sdk.logging import logger
+from orchd_sdk.models import Event, ReactionTemplate
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
-
-
-@dataclass()
-class Event:
-    event_name: str
-    data: Dict[str, str]
-    id: str = field(default=str(uuid.uuid4()))
-
-    def __init__(self, event_name: str, data: Any):
-        self.event_name = event_name
-        self.data = data
-
-
-@dataclass
-class ReactionTemplate:
-    """
-    Representation of a possible :class:`ReactionTemplate` to be taken by a Node on a
-    given event.
-
-    Nodes can react on events detected in the network or internally in the node.
-    Some example of possible events are:
-    - Service Discovered
-    - USB Device Attached
-    - Service Down
-
-    Attributes:
-        name: the name of the :class:`ReactionTemplate`.
-        handler: reaction event handler class - The class name.
-        triggered_on: the event name that can trigger the action.
-        handler_parameters: Handler specific parameters.
-        active: Indiciation if the :class:`ReactionTemplate` is active or not.
-    """
-    name: str
-    handler: str
-    triggered_on: List[str]
-    handler_parameters: Dict[str, Union[str, Dict]] = field(default_factory=dict)
-    active: bool = True
 
 
 class ReactionHandler(ABC):
@@ -135,7 +97,9 @@ class DummyReaction(Reaction):
     """Dummy Reaction used system tests during runtime."""
 
     template = ReactionTemplate(
+        id='cfe5b2cd-fb15-4ca6-888f-6a770d1a4e6a',
         name='io.orchd.reaction_template.DummyTemplate',
+        version='1.0',
         triggered_on=["io.orchd.events.system.Test"],
         handler="orchd_sdk.event.DummyReactionHandler",
         handler_parameters=dict(),

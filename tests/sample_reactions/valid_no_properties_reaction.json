@@ -1,5 +1,6 @@
 {
-  "name": "Monitor Container",
+  "name": "orchd.MonitorContainerTest",
+  "version": "1.0",
   "handler": "orchd.reactions.ContainerRunReaction",
   "triggered_on": ["newContainerizedService"]
 }

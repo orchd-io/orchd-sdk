@@ -5,7 +5,7 @@ version = open('src/orchd_sdk/VERSION').read().strip()
 
 requirements = [
     'rx',
-    'jsonschema',
+    'pydantic'
 ]
 
 test_requirements = [
