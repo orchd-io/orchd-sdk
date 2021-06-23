@@ -43,6 +43,7 @@ setup(
     packages=find_packages(where='src'),
     package_data={'orchd_sdk': [
         'VERSION',
-        'reaction.schema.json'
+        'reaction.schema.json',
+        'logger.ini'
     ]}
 )

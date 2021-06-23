@@ -3,7 +3,10 @@ import uuid
 from typing import Dict, List, Any
 
 from pydantic import Field, BaseModel
-from pydantic.types import UUID
+
+
+def uuid_str_factory():
+    return str(uuid.uuid4())
 
 
 class Event(BaseModel):
@@ -14,12 +17,12 @@ class Event(BaseModel):
         example='io.orchd.events.system.Test'
     )
     data: Dict[str, Any] = Field(
-        default_factory=lambda: dict(),
+        default_factory=dict,
         title='Event Data',
         description='Data attached to the event in the form of key/value pairs.'
     )
-    id: UUID = Field(
-        default_factory=uuid.uuid4,
+    id: str = Field(
+        default_factory=uuid_str_factory,
         title='Event ID',
         description='Event Unique Identifier.'
     )
@@ -80,8 +83,8 @@ class ReactionTemplate(BaseModel):
                     'new Reactions.',
         example=True
     )
-    id: UUID = Field(
-        default_factory=uuid.uuid4,
+    id: str = Field(
+        default_factory=uuid_str_factory,
         title='Reaction Template ID',
         description='Unique Reaction Template identifier.',
         example='0a0866da-2a41-41a3-bcd9-9be9eedb2525'

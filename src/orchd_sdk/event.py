@@ -84,7 +84,7 @@ class ReactionsEventBus:
         self._subject = Subject()
 
     def register_reaction(self, reaction: Reaction):
-        self._subject.subscribe(reaction.on_next)
+        self._subject.subscribe(reaction)
 
     def event(self, event_: Event):
         self._subject.on_next(event_)
@@ -111,7 +111,5 @@ class DummyReaction(Reaction):
 
 
 class DummyReactionHandler(ReactionHandler):
-    async def handle(self, event: Event, reaction: ReactionTemplate,
-                     ) -> Any:
-        await asyncio.sleep(2)
-        logger.info(f"DummyReactionHandler.handle Called")
+    def handle(self, event: Event, reaction: ReactionTemplate) -> Any:
+        logger.info(f'DummyReactionHandler.handle Called')
