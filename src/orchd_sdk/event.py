@@ -8,7 +8,7 @@ from abc import abstractmethod, ABC
 
 from typing import Any
 
-from rx.core import Observer
+from rx.core.observer import Observer
 from rx.subject import Subject
 
 from orchd_sdk.logging import logger
@@ -44,6 +44,7 @@ class Reaction(Observer):
 
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
+        self.disposable = None
         self.reaction_template = reaction_template
         self.handler = self.create_handler_object()
         self._loop = asyncio.get_event_loop()
@@ -78,13 +79,18 @@ class Reaction(Observer):
             schema = json.loads(fd.read())
         return schema
 
+    def dispose(self) -> None:
+        self.disposable.dispose()
+        super().dispose()
+
 
 class ReactionsEventBus:
     def __init__(self):
         self._subject = Subject()
 
     def register_reaction(self, reaction: Reaction):
-        self._subject.subscribe(reaction)
+        disposable = self._subject.subscribe(reaction)
+        reaction.disposable = disposable
 
     def event(self, event_: Event):
         self._subject.on_next(event_)
