@@ -85,18 +85,31 @@ class Reaction(Observer):
 
 
 class ReactionsEventBus:
+    """
+    The Reaction Event Bus.
+
+    The Reaction Event Bus wraps a rx.subject.Subject and offers
+    a method to register Reactions (they are rx.core.observer.Observers).
+
+    Whenever ones wants to propagate an event on the system CAN do this
+    through an global reaction event bus. However it is allowed to create
+    more BUSES depending on the system architecture being implemented.
+    """
     def __init__(self):
         self._subject = Subject()
 
     def register_reaction(self, reaction: Reaction):
+        """Registers a Reaction (Observer) on the subject."""
         disposable = self._subject.subscribe(reaction)
         reaction.disposable = disposable
 
     def event(self, event_: Event):
+        """Forwards the event to the subscribers"""
         self._subject.on_next(event_)
 
     def remove_all_reactions(self):
-        self._subject.dispose()
+        """Unsubscribe all observers"""
+        NotImplementedError()
 
 
 class DummyReaction(Reaction):
@@ -117,5 +130,12 @@ class DummyReaction(Reaction):
 
 
 class DummyReactionHandler(ReactionHandler):
+    """
+    A Dummy ReactionHandler that is used in system tests.
+    """
     def handle(self, event: Event, reaction: ReactionTemplate) -> Any:
         logger.info(f'DummyReactionHandler.handle Called')
+
+
+global_reactions_event_bus = ReactionsEventBus()
+"""System wide ReactionEventBus"""
