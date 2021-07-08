@@ -1,9 +1,9 @@
-from typing import Any
+import asyncio
 from abc import ABC, abstractmethod
 
-from event import global_reactions_event_bus
+from orchd_sdk.event import global_reactions_event_bus
 
-from orchd_sdk.models import Event
+from orchd_sdk.models import Event, SensorTemplate
 
 
 class SensorError(Exception):
@@ -29,20 +29,29 @@ class AbstractCommunicator(ABC):
         self._authenticated = False
 
     @abstractmethod
-    def emit_event(self, event_name, data):
+    def emit_event(self, event: Event):
         """
         Emits the event in the orchd agent's Reactor.
-        :param event_name: name of the event
-        :param data: additional data related to the event.
+        :param event: Event to be emitted
         """
-        pass
 
     @abstractmethod
-    def authenticate(self):
+    def close(self):
+        """
+        Closes connections and releases resources.
+        """
+
+    @abstractmethod
+    async def authenticate(self):
         """
         Authenticates the sensor against the Orchd Agent.
         """
-        pass
+
+
+class SensorState:
+    READY = (2, 'READY')
+    RUNNING = (3, 'RUNNING')
+    STOPPED = (4, 'STOPPED')
 
 
 class AbstractSensor(ABC):
@@ -53,17 +62,68 @@ class AbstractSensor(ABC):
     and inject it in Orchd. To inject the event they will use the Communicator.
     """
 
-    def __init__(self, communicator: AbstractCommunicator,
-                 sensor_template):
+    @abstractmethod
+    def __init__(self, sensor_template: SensorTemplate,
+                 communicator: AbstractCommunicator,
+                 sensing_interval=0):
         self.sensor_template = sensor_template
         self.communicator = communicator
+        self.sensing_interval = sensing_interval
+        self.state = SensorState.READY
 
     @abstractmethod
     async def sense(self):
         """
-        Starts the sensor main loop.
+        Sensor function to be called in order to sense an external event.
+
+        It will be called in loop while the sensor is running.
         """
-        pass
+
+    async def start(self):
+        """
+        Prepares the sensor and starts it.
+
+        The basic implementation calls the sense method in a loop, it will
+        stop when the state of the sensor changes to SensorState.STOPPED
+
+        This is a basic implementation and can be overridden if necessary.
+        """
+        self.state = SensorState.RUNNING
+        while self.state == SensorState.RUNNING:
+            await self.sense()
+            await asyncio.sleep(self.sensing_interval)
+
+    async def stop(self):
+        """
+        Stops the sensor main loop and release resources.
+
+        This is a basic implementation and can be overridden if necessary.
+        """
+        self.state = SensorState.STOPPED
+
+
+class DummySensor(AbstractSensor):
+    """
+    Dummy sensor that emits io.orchd.events.system.Test events.
+    """
+    def __init__(self, sensor_template,  communicator: AbstractCommunicator):
+        super().__init__(sensor_template, communicator)
+        self.state = SensorState.READY
+
+    template = SensorTemplate(
+        name='io.orchd.sensor_template.DummySensor',
+        description='A dummy Sensor to be used for testing purposes',
+        version='1.0',
+        sensor='orchd_sdk.sensor.DummySensor',
+        communicator='orchd_sdk.sensor.LocalCommunicator',
+        parameters={'some': 'data'},
+        sensing_interval=0
+    )
+
+    async def sense(self):
+        await asyncio.sleep(1)
+        self.communicator.emit_event(Event(event_name='io.orchd.events.system.Test',
+                                           data={'dummy': 'data'}))
 
 
 class LocalCommunicator(AbstractCommunicator):
@@ -80,17 +140,21 @@ class LocalCommunicator(AbstractCommunicator):
     def __init__(self):
         super().__init__()
 
-    async def emit_event(self, event_name: str, data: Any):
+    async def emit_event(self, event: Event):
         """
         Emits an event using the global ReactionsEventBus
-        :param event_name: name of the event.
-        :param data: additional data related to the event.
+        :param event: Event to emit.
         """
-        global_reactions_event_bus.event(Event(event_name=event_name,
-                                               data=data))
+        global_reactions_event_bus.event(event)
 
-    def authenticate(self):
+    async def authenticate(self):
         """
         no-op since local communicator do not need to authenticate.
         """
         pass
+
+    def close(self):
+        """
+        no-op since it is a local communicator and do not uses additions
+        resources/connections.
+        """

@@ -104,12 +104,13 @@ class SensorTemplate(BaseModel):
     id: str = Field(
         title='Id',
         description='Unique identification of the Sensor',
-        example='0ba3376f-64b8-4ecf-a579-66c353100e1c'
+        example='0ba3376f-64b8-4ecf-a579-66c353100e1c',
+        default=uuid_str_factory
     )
 
     name: str = Field(
         title='Sensor\'s Name',
-        description='The name of the Sensor',
+        description='The namespaced name of the Sensor',
         regex=r'^\w[\w\._\-]+$',
         example='io.orchd.sensor.template.DummySensorTemplate'
     )
@@ -120,13 +121,25 @@ class SensorTemplate(BaseModel):
         example='1.0'
     )
 
-    sensor_class: str = Field(
+    sensor: str = Field(
         title='Sensor Class',
         description='Class that implements the Sensor',
-        example='io.orchd.sensor.DummySensor'
+        example='orchd_sdk.sensor.DummySensor'
     )
 
-    sensor_parameters: Dict[str, Union[str, int, float]] = Field(
+    sensing_interval: float = Field(
+        title='Sensing Interval',
+        description='Interval between two consecutive sense calls in seconds.',
+        example=0.1
+    )
+
+    communicator: str = Field(
+        title='Communicator Class',
+        description='Class of the Communicator to used.',
+        example='orchd_sdk.sensor.LocalCommunicator'
+    )
+
+    parameters: Dict[str, Union[str, int, float]] = Field(
         title='Sensor Parameters',
         description='Parameters to be used by the Sensor during Runtime',
         example={'poll_interval': 3}
@@ -135,5 +148,5 @@ class SensorTemplate(BaseModel):
     description: str = Field(
         title='Description',
         description='Description of the Sensor',
-        example="Sense for changes in a Dummy value in the System"
+        example='Sense for changes in a Dummy value in the System'
     )
