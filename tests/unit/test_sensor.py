@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from orchd_sdk.event import ReactionsEventBus
 from orchd_sdk.sensor import DummySensor, LocalCommunicator, SensorState
 
 
@@ -49,3 +50,21 @@ class TestSensor:
         await asyncio.sleep(0.1)  # Give a chance for start to be called
         await sensor.stop()
         sense_mock.assert_awaited()
+
+
+class TestLocalCommunicator:
+
+    def test___init__(self):
+        """
+        Tests if the ReactionEventBus is handled correctly.
+
+        LocalCommunicators will use the global event bus it none is given.
+        """
+        from orchd_sdk.sensor import global_reactions_event_bus
+
+        communicator1 = LocalCommunicator()
+        assert communicator1.event_bus is global_reactions_event_bus
+
+        bus = ReactionsEventBus()
+        communicator2 = LocalCommunicator(event_bus=bus)
+        assert communicator2.event_bus is bus

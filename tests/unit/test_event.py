@@ -1,12 +1,8 @@
-from unittest.mock import patch, AsyncMock, Mock
+from unittest.mock import patch,  Mock
 
 import pytest
-import asyncio
-import datetime
-from orchd_sdk.event import DummyReactionHandler, DummyReaction, \
-    ReactionsEventBus
+from orchd_sdk.event import DummyReaction, ReactionsEventBus
 from orchd_sdk.models import Event
-from orchd_sdk.logging import logger
 
 
 @pytest.fixture
@@ -46,4 +42,3 @@ class TestReactionHandler:
         event_bus.event(test_event)
         handle_mock.assert_called()
         handle_mock.reset_mock()
-

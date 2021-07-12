@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 
-from orchd_sdk.event import global_reactions_event_bus
+from orchd_sdk.event import global_reactions_event_bus, ReactionsEventBus
 
 from orchd_sdk.models import Event, SensorTemplate
 
@@ -130,22 +130,25 @@ class LocalCommunicator(AbstractCommunicator):
     """
     Object Message Communicator for emitting events.
 
-    This communicator emits events by invoking the global ReactorEventBus
+    This communicator emits events by invoking the given ReactionsEventBus
     that is used by the Reactor. This communicator do not requires authentication
     since it is part of the system. It is intended to provide more performance.
+
+    If no ReactionsBusEvent object is given the default one is used instead.
 
     It is recommended that this communicator to be Ued by trusted sensors.
     """
 
-    def __init__(self):
+    def __init__(self, event_bus: ReactionsEventBus = None):
         super().__init__()
+        self.event_bus = event_bus or global_reactions_event_bus
 
     async def emit_event(self, event: Event):
         """
         Emits an event using the global ReactionsEventBus
         :param event: Event to emit.
         """
-        global_reactions_event_bus.event(event)
+        self.event_bus.event(event)
 
     async def authenticate(self):
         """
