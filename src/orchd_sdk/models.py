@@ -105,7 +105,7 @@ class SensorTemplate(BaseModel):
         title='Id',
         description='Unique identification of the Sensor',
         example='0ba3376f-64b8-4ecf-a579-66c353100e1c',
-        default=uuid_str_factory
+        default_factory=uuid_str_factory
     )
 
     name: str = Field(
