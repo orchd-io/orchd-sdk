@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from abc import ABC, abstractmethod
 
 from orchd_sdk.event import global_reactions_event_bus, ReactionsEventBus
@@ -27,6 +28,7 @@ class AbstractCommunicator(ABC):
 
     def __init__(self):
         self._authenticated = False
+        self.id = uuid.uuid4()
 
     @abstractmethod
     def emit_event(self, event: Event):
@@ -69,7 +71,7 @@ class AbstractSensor(ABC):
         self.sensor_template = sensor_template
         self.communicator = communicator
         self.sensing_interval = sensing_interval
-        self.state = SensorState.READY
+        self._state = SensorState.READY
 
     @abstractmethod
     async def sense(self):
@@ -100,6 +102,14 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.STOPPED
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        self._state = state
 
 
 class DummySensor(AbstractSensor):
