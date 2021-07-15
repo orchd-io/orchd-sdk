@@ -73,6 +73,7 @@ class AbstractSensor(ABC):
         self.communicator = communicator
         self.sensing_interval = sensing_interval
         self._state = SensorState.READY
+        self._start_task = None
 
     @abstractmethod
     async def sense(self):
@@ -82,7 +83,12 @@ class AbstractSensor(ABC):
         It will be called in loop while the sensor is running.
         """
 
-    async def start(self):
+    async def _start(self):
+        while self.state == SensorState.RUNNING:
+            await self.sense()
+            await asyncio.sleep(self.sensing_interval)
+
+    def start(self):
         """
         Prepares the sensor and starts it.
 
@@ -92,9 +98,7 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.RUNNING
-        while self.state == SensorState.RUNNING:
-            await self.sense()
-            await asyncio.sleep(self.sensing_interval)
+        self._start_task = asyncio.get_event_loop().create_task(self._start())
 
     async def stop(self):
         """

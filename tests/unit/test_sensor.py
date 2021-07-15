@@ -26,7 +26,7 @@ class TestSensor:
         sensor = DummySensor(DummySensor.template, LocalCommunicator())
         assert sensor.state == SensorState.READY
 
-        task = asyncio.get_event_loop().create_task(sensor.start())
+        sensor.start()
         await asyncio.sleep(0.1)  # Gives the chance to start execute...
         assert sensor.state == SensorState.RUNNING
 
@@ -46,7 +46,7 @@ class TestSensor:
         sense_mock = AsyncMock()
         sensor.sense = sense_mock
 
-        asyncio.get_event_loop().create_task(sensor.start())
+        sensor.start()
         await asyncio.sleep(0.1)  # Give a chance for start to be called
         await sensor.stop()
         sense_mock.assert_awaited()
