@@ -1,6 +1,7 @@
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
+from asyncio import Future, Task
 
 from orchd_sdk.event import global_reactions_event_bus, ReactionsEventBus
 
@@ -73,7 +74,7 @@ class AbstractSensor(ABC):
         self.communicator = communicator
         self.sensing_interval = sensing_interval
         self._state = SensorState.READY
-        self._start_task = None
+        self._start_task: Task = None
 
     @abstractmethod
     async def sense(self):
@@ -107,6 +108,7 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.STOPPED
+        await self._start_task
 
     @property
     def state(self):
