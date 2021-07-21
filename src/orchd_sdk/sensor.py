@@ -1,11 +1,7 @@
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
-<<<<<<< HEAD
-from asyncio import Future, Task
-=======
-from asyncio import Future
->>>>>>> b078d772408e5e9628c526af5ec163435b21dac0
+from asyncio import Task
 
 from orchd_sdk.event import global_reactions_event_bus, ReactionsEventBus
 
