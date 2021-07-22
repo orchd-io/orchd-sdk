@@ -152,6 +152,46 @@ class SensorTemplate(BaseModel):
     )
 
 
+class Sensor(BaseModel):
+    """
+    Represents the state and data of a Sensor
+    """
+    id: str = Field(
+        title='Sensor Id',
+        description='Id of the sensor.',
+        example='7447f5f8-63f6-48d0-8537-5fae0b30015d'
+    )
+
+    template: SensorTemplate = Field(
+        title='Sensor Template',
+        description='Template related to the Sensor.',
+        example='orchd_sdk.sensor.DummySensor'
+    )
+
+    status: tuple = Field(
+        title='Sensor Status',
+        description='Current status of the Sensor.',
+        example=(2, 'READY')
+    )
+
+    events_count: Optional[int] = Field(
+        title='Events Counter',
+        description='Number of events sensed by the sensor.',
+        example=1002
+    )
+
+    events_forwarded: Optional[int] = Field(
+        title='Forwarded Events',
+        description='Number of events sensed and forwarded to Orchd.',
+        example=540
+    )
+
+    events_discarded: Optional[int] = Field(
+        title='Events discarded',
+        description='Number of events sensed, captured but discarded.'
+    )
+
+
 class Id(BaseModel):
     """
     Represents an Id and associated possible additional info.
