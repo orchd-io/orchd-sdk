@@ -1,6 +1,6 @@
 import uuid
 
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Optional
 
 from pydantic import Field, BaseModel
 
@@ -150,3 +150,28 @@ class SensorTemplate(BaseModel):
         description='Description of the Sensor',
         example='Sense for changes in a Dummy value in the System'
     )
+
+
+class Id(BaseModel):
+    """
+    Represents an Id and associated possible additional info.
+
+    This model is intended to be used when sending Id over the network.
+    Many operations, e.g. HTTP services requires IDs to be sent as payload,
+    this model makes it easy to serialized/deserialize the Id in the source
+    and destination.
+    """
+
+    id: str = Field(
+        title='ID',
+        description='An ID.',
+        example='0ccb8b84-c52d-4a6a-af6b-a2c273745825'
+    )
+
+    metadata: Optional[Dict[str, str]] = Field(
+        title='ID Metadata',
+        description='Optional field with Key/Value pairs with additional info about '
+                    'the id.',
+        example={'related_model': 'SomeModelClass'}
+    )
+
