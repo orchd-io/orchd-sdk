@@ -5,7 +5,7 @@ from asyncio import Task
 
 from orchd_sdk.event import global_reactions_event_bus, ReactionsEventBus
 
-from orchd_sdk.models import Event, SensorTemplate
+from orchd_sdk.models import Event, SensorTemplate, Sensor
 
 
 class SensorError(Exception):
@@ -75,6 +75,9 @@ class AbstractSensor(ABC):
         self.sensing_interval = sensing_interval
         self._state = SensorState.READY
         self._start_task: Task = None
+        self._events_counter = -1
+        self._events_forwarded = -1
+        self._events_discarded = -1
 
     @abstractmethod
     async def sense(self):
@@ -108,7 +111,15 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.STOPPED
-        await self._start_task
+        if self._start_task:
+            await self._start_task
+
+    def status(self):
+        return Sensor(
+            id=self.id, template=self.sensor_template, status=self._state,
+            events_count=self._events_counter, events_forwarded=self._events_forwarded,
+            events_discarded=self._events_discarded
+        )
 
     @property
     def state(self):
