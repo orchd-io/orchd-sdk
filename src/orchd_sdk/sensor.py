@@ -32,7 +32,7 @@ class AbstractCommunicator(ABC):
         self.id = str(uuid.uuid4())
 
     @abstractmethod
-    def emit_event(self, event: Event):
+    async def emit_event(self, event: Event):
         """
         Emits the event in the orchd agent's Reactor.
         :param event: Event to be emitted
@@ -150,8 +150,9 @@ class DummySensor(AbstractSensor):
 
     async def sense(self):
         await asyncio.sleep(1)
-        self.communicator.emit_event(Event(event_name='io.orchd.events.system.Test',
-                                           data={'dummy': 'data'}))
+        await self.communicator.emit_event(
+            Event(event_name='io.orchd.events.system.Test', data={'dummy': 'data'})
+        )
 
 
 class LocalCommunicator(AbstractCommunicator):
