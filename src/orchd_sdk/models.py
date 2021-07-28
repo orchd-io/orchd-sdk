@@ -38,7 +38,7 @@ class Event(BaseModel):
         additional_properties = False
 
 
-class Sink(BaseModel):
+class SinkTemplate(BaseModel):
     """
     Representation of an Orchd Sink
 
@@ -50,6 +50,18 @@ class Sink(BaseModel):
         title='Sink Id',
         description='Id of the Sink',
         example='3d2077c7-dbad-4975-b769-a8da870cf5f6'
+    )
+
+    name: str = Field(
+        title='Sink\'s name',
+        description='A descriptive name for the Sink.',
+        example='io.orchd.sinks.MyMainSink'
+    )
+
+    version: str = Field(
+        title='Sink\'s Version',
+        description='Version of this Sink.',
+        example='0,1'
     )
 
     sink_class: str = Field(
@@ -104,11 +116,11 @@ class ReactionTemplate(BaseModel):
         example={'test_type': 'full'},
     )
 
-    sinks: Optional[List[Sink]] = Field(
+    sinks: Optional[List[SinkTemplate]] = Field(
         title='Sinks',
         description='Sinks used by reactions created from this template.',
-        example=Sink(sink_class='orchd_sdk.sink.DummySink',
-                     properties={'endpoint': 'https://example.com/test'})
+        example=SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+                             properties={'endpoint': 'https://example.com/test'})
     )
 
     active: bool = Field(
