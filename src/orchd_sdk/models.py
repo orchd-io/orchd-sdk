@@ -38,6 +38,33 @@ class Event(BaseModel):
         additional_properties = False
 
 
+class Sink(BaseModel):
+    """
+    Representation of an Orchd Sink
+
+    The properties are Sink implementation specific and the allowed options must be
+    defined in the Sink implementation docs.
+    """
+    id: str = Field(
+        default_factory=uuid_str_factory,
+        title='Sink Id',
+        description='Id of the Sink',
+        example='3d2077c7-dbad-4975-b769-a8da870cf5f6'
+    )
+
+    sink_class: str = Field(
+        title='Sink Class',
+        description='Sink Class to be used to instantiate sinks.',
+        example='orchd_sdk.sink.DummySink'
+    )
+
+    properties: Dict[str, str] = Field(
+        title='Sink Properties',
+        description='key/value pairs with Sink specific properties',
+        example={'endpoint': 'http//www.example.com/test'}
+    )
+
+
 class ReactionTemplate(BaseModel):
     """
     Representation of a Reaction Template to be used to create :class:`Reaction`s.
@@ -76,6 +103,14 @@ class ReactionTemplate(BaseModel):
                     'pair.',
         example={'test_type': 'full'},
     )
+
+    sinks: Optional[List[Sink]] = Field(
+        title='Sinks',
+        description='Sinks used by reactions created from this template.',
+        example=Sink(sink_class='orchd_sdk.sink.DummySink',
+                     properties={'endpoint': 'https://example.com/test'})
+    )
+
     active: bool = Field(
         default=True,
         title='Active',
@@ -214,4 +249,3 @@ class Id(BaseModel):
                     'the id.',
         example={'related_model': 'SomeModelClass'}
     )
-
