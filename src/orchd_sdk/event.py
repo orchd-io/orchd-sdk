@@ -85,9 +85,9 @@ class Reaction(Observer):
                 '' in self.reaction_template.triggered_on:
             self.sink(self.handler.handle(event, self.reaction_template))
 
-    async def sink(self, data):
+    def sink(self, data):
         for sink in self._sinks:
-            await sink.sink(data)
+            self._loop.run_in_executor(None, sink.sink, (data,))
 
     @staticmethod
     def schema() -> str:
