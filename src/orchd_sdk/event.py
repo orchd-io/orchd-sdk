@@ -75,7 +75,7 @@ class Reaction(Observer):
         try:
             for sink in self.reaction_template.sinks:
                 SinkClass = import_class(sink.sink_class)
-                self._sinks.append(SinkClass())
+                self._sinks.append(SinkClass(sink))
         except ModuleNotFoundError as e:
             raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
 
