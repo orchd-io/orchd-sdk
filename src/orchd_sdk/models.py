@@ -119,10 +119,10 @@ class ReactionTemplate(BaseModel):
     sinks: Optional[List[SinkTemplate]] = Field(
         title='Sinks',
         description='Sinks used by reactions created from this template.',
-        example=SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+        example=[SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
                              name='io.orchd.sinks.DummySink',
                              version='0.1',
-                             properties={'endpoint': 'https://example.com/test'})
+                             properties={'endpoint': 'https://example.com/test'})]
     )
 
     active: bool = Field(
