@@ -1,3 +1,5 @@
+.tox
+*.db
 .idea
 .pytest_cache
 .venv
@@ -5,3 +7,4 @@
 orchd_sdk.egg-info
 dist
 *.pyc
+test.json

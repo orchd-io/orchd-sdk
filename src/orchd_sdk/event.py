@@ -1,18 +1,24 @@
 import asyncio
 import importlib
 import json
+from asyncio import AbstractEventLoop
+
 import sys
 
 from os import path
 from abc import abstractmethod, ABC
 
-from typing import Any
+from typing import Any, List
 
 from rx.core.observer import Observer
+from rx.core.typing import Disposable
 from rx.subject import Subject
 
+from orchd_sdk.errors import SinkError
 from orchd_sdk.logging import logger
+from orchd_sdk.common import import_class
 from orchd_sdk.models import Event, ReactionTemplate
+from orchd_sdk.sink import AbstractSink
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
@@ -44,10 +50,11 @@ class Reaction(Observer):
 
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
-        self.disposable = None
-        self.reaction_template = reaction_template
-        self.handler = self.create_handler_object()
-        self._loop = asyncio.get_event_loop()
+        self.disposable: Disposable = ...
+        self.reaction_template: ReactionTemplate = reaction_template
+        self.handler: ReactionHandler = self.create_handler_object()
+        self._loop: AbstractEventLoop = asyncio.get_event_loop()
+        self._sinks: List[AbstractSink] = list()
 
     def create_handler_object(self) -> ReactionHandler:
         """Instantiate a :class:`ReactionHandler` indicated
@@ -63,10 +70,24 @@ class Reaction(Observer):
 
         return self.handler
 
+    def create_sinks(self) -> List[AbstractSink]:
+        try:
+            for sink_class in self.reaction_template.sinks:
+                SinkClass = import_class(sink_class)
+                self._sinks.append(SinkClass())
+        except ModuleNotFoundError as e:
+            raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
+
+        return self._sinks
+
     def on_next(self, event: Event) -> None:
         if event.event_name in self.reaction_template.triggered_on or \
                 '' in self.reaction_template.triggered_on:
-            self.handler.handle(event, self.reaction_template)
+            self.sink(self.handler.handle(event, self.reaction_template))
+
+    async def sink(self, data):
+        for sink in self._sinks:
+            await sink.sink(data)
 
     @staticmethod
     def schema() -> str:
@@ -82,6 +103,11 @@ class Reaction(Observer):
     def dispose(self) -> None:
         self.disposable.dispose()
         super().dispose()
+
+    def close(self):
+        self.dispose()
+        for sink in self._sinks:
+            sink.close()
 
 
 class ReactionsEventBus:
@@ -119,8 +145,9 @@ class DummyReaction(Reaction):
         id='cfe5b2cd-fb15-4ca6-888f-6a770d1a4e6a',
         name='io.orchd.reaction_template.DummyTemplate',
         version='1.0',
-        triggered_on=["io.orchd.events.system.Test"],
+        triggered_on=['io.orchd.events.system.Test'],
         handler="orchd_sdk.event.DummyReactionHandler",
+        sinks='orchd_sdk.sink.DummySink',
         handler_parameters=dict(),
         active=True
     )

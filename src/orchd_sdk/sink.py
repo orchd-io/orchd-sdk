@@ -1,6 +1,8 @@
 from typing import Any
 from abc import abstractmethod, ABC
 
+from orchd_sdk.common import import_class
+from orchd_sdk.errors import SinkError
 from orchd_sdk.logging import logger
 from orchd_sdk.models import SinkTemplate
 
@@ -25,15 +27,38 @@ class AbstractSink(ABC):
         self._template = template
 
     @abstractmethod
-    def sink(self, data: Any):
+    async def sink(self, data: Any):
+        pass
+
+    @abstractmethod
+    async def close(self):
         pass
 
 
 class DummySink(AbstractSink):
     """Dummy Sink for testing purposes"""
 
+    template = SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+                            name='io.orchd.sinks.DummySink',
+                            version='0.1',
+                            properties={'endpoint': 'https://example.com/test'})
+
     def __init__(self, template: SinkTemplate):
         super().__init__(template)
 
-    def sink(self, data):
-        logger.debug(f'Data SUNK by Dummy! {data}')
+    async def sink(self, data):
+        logger.debug(f'Data SUNK by Dummy! Actually, I did Nothing! :P {data}')
+
+    async def close(self):
+        pass
+
+
+def sink_factory(template: SinkTemplate):
+    try:
+        Class = import_class(template.sink_class)
+        if isinstance(Class, AbstractSink):
+            raise SinkError('Sink class is not Valid!')
+        return Class(template)
+    except ModuleNotFoundError:
+        raise SinkError('Sink class not found in PYTHONPATH.')
+
