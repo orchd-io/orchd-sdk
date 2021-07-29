@@ -18,7 +18,7 @@ from orchd_sdk.errors import SinkError
 from orchd_sdk.logging import logger
 from orchd_sdk.common import import_class
 from orchd_sdk.models import Event, ReactionTemplate
-from orchd_sdk.sink import AbstractSink
+from orchd_sdk.sink import AbstractSink, DummySink
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
@@ -147,7 +147,7 @@ class DummyReaction(Reaction):
         version='1.0',
         triggered_on=['io.orchd.events.system.Test'],
         handler="orchd_sdk.event.DummyReactionHandler",
-        sinks=['orchd_sdk.sink.DummySink'],
+        sinks=[DummySink.template],
         handler_parameters=dict(),
         active=True
     )
