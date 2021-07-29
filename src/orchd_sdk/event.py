@@ -87,7 +87,7 @@ class Reaction(Observer):
 
     def sink(self, data):
         for sink in self._sinks:
-            self._loop.run_in_executor(None, sink.sink, (data,))
+            self._loop.create_task(sink.sink(data))
 
     @staticmethod
     def schema() -> str:
