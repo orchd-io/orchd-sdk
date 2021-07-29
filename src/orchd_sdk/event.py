@@ -51,7 +51,7 @@ class Reaction(Observer):
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
         self.disposable: Disposable = ...
-        self._sinks: List[AbstractSink] = ...
+        self._sinks: List[AbstractSink] = list()
         self.reaction_template: ReactionTemplate = reaction_template
         self.handler: ReactionHandler = self.create_handler_object()
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
