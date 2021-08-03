@@ -142,6 +142,7 @@ class ReactionTemplate(BaseModel):
 
     sinks: Optional[List[SinkTemplate]] = Field(
         title='Sinks',
+        default_factory=list,
         description='Sinks used by reactions created from this template.',
         example=[SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
                               name='io.orchd.sinks.DummySink',

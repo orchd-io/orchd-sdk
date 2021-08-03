@@ -58,22 +58,8 @@ class Reaction(Observer):
         self.create_sinks()
 
     @property
-    def sinks(self):
+    def sinks(self) -> Dict[str, AbstractSink]:
         return self._sinks
-
-    def create_handler_object(self) -> ReactionHandler:
-        """Instantiate a :class:`ReactionHandler` indicated
-        in the reaction template."""
-        class_parts = self.reaction_template.handler.split('.')
-        class_name = class_parts.pop()
-        module_name = '.'.join(class_parts)
-
-        if module_name not in sys.modules:
-            importlib.import_module(module_name)
-        HandlerClass = getattr(sys.modules.get(module_name), class_name)
-        self.handler = HandlerClass()
-
-        return self.handler
 
     def create_sinks(self) -> Dict[str, AbstractSink]:
         for sink in self.reaction_template.sinks:
@@ -91,6 +77,31 @@ class Reaction(Observer):
             self._sinks[sink.id] = sink
         except ModuleNotFoundError as e:
             raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
+
+    async def remove_sink(self, sink_id):
+        sink = self._sinks[sink_id]
+        await sink.close()
+        del self._sinks[sink_id]
+
+    def get_sink_by_id(self, sink_id):
+        try:
+            return self._sinks[sink_id]
+        except KeyError:
+            raise SinkError(f'Sink with given ID({sink_id}) Not Found!')
+
+    def create_handler_object(self) -> ReactionHandler:
+        """Instantiate a :class:`ReactionHandler` indicated
+        in the reaction template."""
+        class_parts = self.reaction_template.handler.split('.')
+        class_name = class_parts.pop()
+        module_name = '.'.join(class_parts)
+
+        if module_name not in sys.modules:
+            importlib.import_module(module_name)
+        HandlerClass = getattr(sys.modules.get(module_name), class_name)
+        self.handler = HandlerClass()
+
+        return self.handler
 
     def on_next(self, event: Event) -> None:
         if event.event_name in self.reaction_template.triggered_on or \
