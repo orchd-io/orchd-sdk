@@ -8,7 +8,7 @@ import sys
 from os import path
 from abc import abstractmethod, ABC
 
-from typing import Any, List, Dict
+from typing import Any, Dict
 
 from rx.core.observer import Observer
 from rx.core.typing import Disposable

@@ -266,7 +266,7 @@ class Sensor(BaseModel):
     )
 
 
-class Id(BaseModel):
+class Ref(BaseModel):
     """
     Represents an Id and associated possible additional info.
 
