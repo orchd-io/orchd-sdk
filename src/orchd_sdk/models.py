@@ -47,25 +47,25 @@ class SinkTemplate(BaseModel):
     """
     id: str = Field(
         default_factory=uuid_str_factory,
-        title='Sink Id',
-        description='Id of the Sink',
+        title='Sink Template Id',
+        description='Id of the Sink Template',
         example='3d2077c7-dbad-4975-b769-a8da870cf5f6'
     )
 
     name: str = Field(
-        title='Sink\'s name',
+        title='Sink\'s Template name',
         description='A descriptive name for the Sink.',
         example='io.orchd.sinks.MyMainSink'
     )
 
     version: str = Field(
-        title='Sink\'s Version',
+        title='Sink\'s Template Version',
         description='Version of this Sink.',
         example='0,1'
     )
 
     sink_class: str = Field(
-        title='Sink Class',
+        title='Sink Template Class',
         description='Sink Class to be used to instantiate sinks.',
         example='orchd_sdk.sink.DummySink'
     )
@@ -74,6 +74,30 @@ class SinkTemplate(BaseModel):
         title='Sink Properties',
         description='key/value pairs with Sink specific properties',
         example={'endpoint': 'http//www.example.com/test'}
+    )
+
+
+class Sink(BaseModel):
+    """
+    Sink instance information.
+
+    Sink instances are attached to Reactions, this model represents the status of
+    sink instances.
+    """
+    id: str = Field(
+        default_factory=uuid_str_factory,
+        title='Sink Id',
+        description='Id of the Sink',
+        example='3d2077c7-dbad-4975-b769-a8da870cf5f6'
+    )
+
+    template: SinkTemplate = Field(
+        title='Sink Template',
+        description='Sink Template used to instantiate the Sink',
+        example=SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+                             name='io.orchd.sinks.DummySink',
+                             version='0.1',
+                             properties={'endpoint': 'https://example.com/test'})
     )
 
 
@@ -120,9 +144,9 @@ class ReactionTemplate(BaseModel):
         title='Sinks',
         description='Sinks used by reactions created from this template.',
         example=[SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
-                             name='io.orchd.sinks.DummySink',
-                             version='0.1',
-                             properties={'endpoint': 'https://example.com/test'})]
+                              name='io.orchd.sinks.DummySink',
+                              version='0.1',
+                              properties={'endpoint': 'https://example.com/test'})]
     )
 
     active: bool = Field(

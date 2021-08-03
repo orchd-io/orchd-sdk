@@ -8,7 +8,7 @@ import sys
 from os import path
 from abc import abstractmethod, ABC
 
-from typing import Any, List
+from typing import Any, List, Dict
 
 from rx.core.observer import Observer
 from rx.core.typing import Disposable
@@ -17,7 +17,7 @@ from rx.subject import Subject
 from orchd_sdk.errors import SinkError
 from orchd_sdk.logging import logger
 from orchd_sdk.common import import_class
-from orchd_sdk.models import Event, ReactionTemplate
+from orchd_sdk.models import Event, ReactionTemplate, SinkTemplate
 from orchd_sdk.sink import AbstractSink, DummySink
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
@@ -51,11 +51,15 @@ class Reaction(Observer):
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
         self.disposable: Disposable = ...
-        self._sinks: List[AbstractSink] = list()
+        self._sinks: Dict[str, AbstractSink] = dict()
         self.reaction_template: ReactionTemplate = reaction_template
         self.handler: ReactionHandler = self.create_handler_object()
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
         self.create_sinks()
+
+    @property
+    def sinks(self):
+        return self._sinks
 
     def create_handler_object(self) -> ReactionHandler:
         """Instantiate a :class:`ReactionHandler` indicated
@@ -71,15 +75,22 @@ class Reaction(Observer):
 
         return self.handler
 
-    def create_sinks(self) -> List[AbstractSink]:
-        try:
-            for sink in self.reaction_template.sinks:
-                SinkClass = import_class(sink.sink_class)
-                self._sinks.append(SinkClass(sink))
-        except ModuleNotFoundError as e:
-            raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
+    def create_sinks(self) -> Dict[str, AbstractSink]:
+        for sink in self.reaction_template.sinks:
+            try:
+                self.add_sink(sink)
+            except SinkError as e:
+                raise SinkError('Sink creation failed!') from e
 
         return self._sinks
+
+    def add_sink(self, sink_template: SinkTemplate):
+        try:
+            SinkClass = import_class(sink_template.sink_class)
+            sink: AbstractSink = SinkClass(sink_template)
+            self._sinks[sink.id] = sink
+        except ModuleNotFoundError as e:
+            raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
 
     def on_next(self, event: Event) -> None:
         if event.event_name in self.reaction_template.triggered_on or \
@@ -87,7 +98,7 @@ class Reaction(Observer):
             self.sink(self.handler.handle(event, self.reaction_template))
 
     def sink(self, data):
-        for sink in self._sinks:
+        for sink in self._sinks.values():
             self._loop.create_task(sink.sink(data))
 
     @staticmethod
@@ -107,7 +118,7 @@ class Reaction(Observer):
 
     def close(self):
         self.dispose()
-        for sink in self._sinks:
+        for sink in self._sinks.values():
             sink.close()
 
 

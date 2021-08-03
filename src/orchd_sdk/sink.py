@@ -1,10 +1,11 @@
+import uuid
 from typing import Any
 from abc import abstractmethod, ABC
 
-from orchd_sdk.common import import_class
-from orchd_sdk.errors import SinkError
 from orchd_sdk.logging import logger
-from orchd_sdk.models import SinkTemplate
+from orchd_sdk.errors import SinkError
+from orchd_sdk.common import import_class
+from orchd_sdk.models import SinkTemplate, Sink
 
 
 class AbstractSink(ABC):
@@ -24,14 +25,20 @@ class AbstractSink(ABC):
     """
 
     def __init__(self, template: SinkTemplate):
+        self.id = str(uuid.uuid4())
         self._template = template
-
-    @abstractmethod
-    async def sink(self, data: Any):
-        pass
+        self._info = Sink(id=self.id, template=template)
 
     @abstractmethod
     async def close(self):
+        pass
+
+    @property
+    def info(self):
+        return self._info
+
+    @abstractmethod
+    async def sink(self, data: Any):
         pass
 
 
