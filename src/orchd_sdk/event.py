@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import json
+import uuid
 from asyncio import AbstractEventLoop
 
 import sys
@@ -8,7 +9,7 @@ import sys
 from os import path
 from abc import abstractmethod, ABC
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from rx.core.observer import Observer
 from rx.core.typing import Disposable
@@ -17,11 +18,39 @@ from rx.subject import Subject
 from orchd_sdk.errors import SinkError
 from orchd_sdk.logging import logger
 from orchd_sdk.common import import_class
-from orchd_sdk.models import Event, ReactionTemplate, SinkTemplate
+from orchd_sdk.models import Event, ReactionTemplate, SinkTemplate, ReactionInfo
 from orchd_sdk.sink import AbstractSink, DummySink
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
+
+
+class ReactionsEventBus:
+    """
+    The Reaction Event Bus.
+
+    The Reaction Event Bus wraps a rx.subject.Subject and offers
+    a method to register Reactions (they are rx.core.observer.Observers).
+
+    Whenever ones wants to propagate an event on the system CAN do this
+    through an global reaction event bus. However it is allowed to create
+    more BUSES depending on the system architecture being implemented.
+    """
+    def __init__(self):
+        self._subject = Subject()
+
+    def register_reaction(self, reaction: "Reaction"):
+        """Registers a Reaction (Observer) on the subject."""
+        disposable = self._subject.subscribe(reaction)
+        reaction.disposable = disposable
+
+    def event(self, event_: Event):
+        """Forwards the event to the subscribers"""
+        self._subject.on_next(event_)
+
+    def remove_all_reactions(self):
+        """Unsubscribe all observers"""
+        NotImplementedError()
 
 
 class ReactionHandler(ABC):
@@ -40,6 +69,12 @@ class ReactionHandler(ABC):
         pass
 
 
+class ReactionState:
+    READY = (2, 'READY')
+    RUNNING = (3, 'RUNNING')
+    STOPPED = (4, 'STOPPED')
+
+
 class Reaction(Observer):
     """
     Reaction handling management class.
@@ -50,16 +85,26 @@ class Reaction(Observer):
 
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
+        self.id = str(uuid.uuid4())
         self.disposable: Disposable = ...
         self._sinks: Dict[str, AbstractSink] = dict()
         self.reaction_template: ReactionTemplate = reaction_template
         self.handler: ReactionHandler = self.create_handler_object()
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
         self.create_sinks()
+        self.state = ReactionState.READY
 
     @property
-    def sinks(self) -> Dict[str, AbstractSink]:
-        return self._sinks
+    def sinks(self) -> List[AbstractSink]:
+        return list(self._sinks.values())
+
+    def status(self):
+        return ReactionInfo(
+            id=self.id,
+            state=self.state[1],
+            template=self.reaction_template,
+            sinks_instances=[s.info for s in self._sinks.values()]
+        )
 
     def create_sinks(self) -> Dict[str, AbstractSink]:
         for sink in self.reaction_template.sinks:
@@ -75,7 +120,7 @@ class Reaction(Observer):
             SinkClass = import_class(sink_template.sink_class)
             sink: AbstractSink = SinkClass(sink_template)
             self._sinks[sink.id] = sink
-        except ModuleNotFoundError as e:
+        except ModuleNotFoundError:
             raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
 
     async def remove_sink(self, sink_id):
@@ -112,6 +157,12 @@ class Reaction(Observer):
         for sink in self._sinks.values():
             self._loop.create_task(sink.sink(data))
 
+    def activate(self, event_bus: ReactionsEventBus):
+        event_bus.register_reaction(self)
+        logger.debug(f'Reaction for template {self.reaction_template.id} '
+                     f'Activated. ID({self.id}).')
+        self.state = ReactionState.RUNNING
+
     @staticmethod
     def schema() -> str:
         """
@@ -126,39 +177,14 @@ class Reaction(Observer):
     def dispose(self) -> None:
         self.disposable.dispose()
         super().dispose()
+        self.disposable = None
+        self.state = ReactionState.STOPPED
 
-    def close(self):
-        self.dispose()
+    async def close(self):
+        if self.state == ReactionState.RUNNING:
+            self.dispose()
         for sink in self._sinks.values():
-            sink.close()
-
-
-class ReactionsEventBus:
-    """
-    The Reaction Event Bus.
-
-    The Reaction Event Bus wraps a rx.subject.Subject and offers
-    a method to register Reactions (they are rx.core.observer.Observers).
-
-    Whenever ones wants to propagate an event on the system CAN do this
-    through an global reaction event bus. However it is allowed to create
-    more BUSES depending on the system architecture being implemented.
-    """
-    def __init__(self):
-        self._subject = Subject()
-
-    def register_reaction(self, reaction: Reaction):
-        """Registers a Reaction (Observer) on the subject."""
-        disposable = self._subject.subscribe(reaction)
-        reaction.disposable = disposable
-
-    def event(self, event_: Event):
-        """Forwards the event to the subscribers"""
-        self._subject.on_next(event_)
-
-    def remove_all_reactions(self):
-        """Unsubscribe all observers"""
-        NotImplementedError()
+            await sink.close()
 
 
 class DummyReaction(Reaction):

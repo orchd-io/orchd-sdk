@@ -45,7 +45,8 @@ class AbstractSink(ABC):
 class DummySink(AbstractSink):
     """Dummy Sink for testing purposes"""
 
-    template = SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+    template = SinkTemplate(id='fa8d0c8d-d525-4984-a091-28dbef21febe',
+                            sink_class='orchd_sdk.sink.DummySink',
                             name='io.orchd.sinks.DummySink',
                             version='0.1',
                             properties={'endpoint': 'https://example.com/test'})

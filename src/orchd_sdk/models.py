@@ -9,6 +9,30 @@ def uuid_str_factory():
     return str(uuid.uuid4())
 
 
+class Ref(BaseModel):
+    """
+    Represents an Id and associated possible additional info.
+
+    This model is intended to be used when sending Id over the network.
+    Many operations, e.g. HTTP services requires IDs to be sent as payload,
+    this model makes it easy to serialized/deserialize the Id in the source
+    and destination.
+    """
+
+    id: str = Field(
+        title='ID',
+        description='An ID.',
+        example='0ccb8b84-c52d-4a6a-af6b-a2c273745825'
+    )
+
+    metadata: Any = Field(
+        title='ID Metadata',
+        description='Optional field with Key/Value pairs with additional info about '
+                    'the id.',
+        example={'related_model': 'SomeModelClass'}
+    )
+
+
 class Event(BaseModel):
     """
     Representation of an event of the Orchd system.
@@ -226,6 +250,36 @@ class SensorTemplate(BaseModel):
     )
 
 
+class ReactionInfo(BaseModel):
+    """
+    Represents the state and info of an Reaction instance.
+    """
+    id: str = Field(
+        title='Reaction Id',
+        description='Id of the Reaction.',
+        example='cdc51818-6ebe-4931-bed2-2a297c70681e'
+    )
+
+    state: str = Field(
+        title='State',
+        description='Current Reaction state.',
+        example='READY'
+    )
+
+    template: ReactionTemplate = Field(
+        title='Reaction Template',
+        description='Reaction Template used to instantiate this Reaction.',
+        example='d818d8ff-f859-4239-8602-103563b8a2ff'
+    )
+
+    sinks_instances: List[Sink] = Field(
+        title='Sinks\' IDs',
+        description='Id of Sinks associated to this reaction',
+        example=['1d1c79de-7170-4dc6-aae1-9504ea7c793e',
+                 'eaaf2065-484e-4c31-88fa-c3b422aa8927']
+    )
+
+
 class Sensor(BaseModel):
     """
     Represents the state and data of a Sensor
@@ -263,28 +317,4 @@ class Sensor(BaseModel):
     events_discarded: Optional[int] = Field(
         title='Events discarded',
         description='Number of events sensed, captured but discarded.'
-    )
-
-
-class Ref(BaseModel):
-    """
-    Represents an Id and associated possible additional info.
-
-    This model is intended to be used when sending Id over the network.
-    Many operations, e.g. HTTP services requires IDs to be sent as payload,
-    this model makes it easy to serialized/deserialize the Id in the source
-    and destination.
-    """
-
-    id: str = Field(
-        title='ID',
-        description='An ID.',
-        example='0ccb8b84-c52d-4a6a-af6b-a2c273745825'
-    )
-
-    metadata: Optional[Dict[str, str]] = Field(
-        title='ID Metadata',
-        description='Optional field with Key/Value pairs with additional info about '
-                    'the id.',
-        example={'related_model': 'SomeModelClass'}
     )
