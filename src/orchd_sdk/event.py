@@ -120,6 +120,7 @@ class Reaction(Observer):
             SinkClass = import_class(sink_template.sink_class)
             sink: AbstractSink = SinkClass(sink_template)
             self._sinks[sink.id] = sink
+            return sink
         except ModuleNotFoundError:
             raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
 

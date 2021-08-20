@@ -237,7 +237,8 @@ class SensorTemplate(BaseModel):
         example='orchd_sdk.sensor.LocalCommunicator'
     )
 
-    parameters: Dict[str, Union[str, int, float]] = Field(
+    parameters: Dict[str, Union[str, int, float,
+                                List[Union[str, int,  float]]]] = Field(
         title='Sensor Parameters',
         description='Parameters to be used by the Sensor during Runtime',
         example={'poll_interval': 3}
