@@ -91,6 +91,7 @@ class AbstractSensor(ABC):
         while self.state == SensorState.RUNNING:
             await self.sense()
             await asyncio.sleep(self.sensing_interval)
+        self._start_task.set_result(None)
 
     def start(self):
         """
@@ -111,8 +112,6 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.STOPPED
-        if self._start_task:
-            await self._start_task
 
     def status(self):
         return Sensor(
