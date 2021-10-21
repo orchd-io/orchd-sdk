@@ -210,7 +210,7 @@ class DummyReaction(Reaction):
         name='io.orchd.reaction_template.DummyTemplate',
         version='1.0',
         triggered_on=['io.orchd.events.system.Test'],
-        handler="orchd_sdk.event.DummyReactionHandler",
+        handler="orchd_sdk.reaction.DummyReactionHandler",
         sinks=[DummySink.template],
         handler_parameters=dict(),
         active=True

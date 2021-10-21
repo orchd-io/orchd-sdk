@@ -3,7 +3,7 @@ import uuid
 from abc import ABC, abstractmethod
 from asyncio import Task
 
-from orchd_sdk.event import global_reactions_event_bus, ReactionsEventBus
+from orchd_sdk.reaction import global_reactions_event_bus, ReactionsEventBus
 
 from orchd_sdk.models import Event, SensorTemplate, Sensor
 
