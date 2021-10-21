@@ -1,7 +1,7 @@
 from unittest.mock import patch,  Mock
 
 import pytest
-from orchd_sdk.event import DummyReaction, ReactionsEventBus
+from orchd_sdk.reaction import DummyReaction, ReactionsEventBus
 from orchd_sdk.models import Event
 
 

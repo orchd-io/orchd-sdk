@@ -149,7 +149,7 @@ class ReactionTemplate(BaseModel):
     handler: str = Field(
         title='Handler Class',
         description='The full name/path of the handler Class',
-        example='orchd_sdk.event.DummyReactionHandler'
+        example='orchd_sdk.reaction.DummyReactionHandler'
     )
     triggered_on: List[str] = Field(
         title='Triggered On',

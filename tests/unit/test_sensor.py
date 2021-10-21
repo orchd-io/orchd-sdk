@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from orchd_sdk.event import ReactionsEventBus
+from orchd_sdk.reaction import ReactionsEventBus
 from orchd_sdk.sensor import DummySensor, LocalCommunicator, SensorState
 
 

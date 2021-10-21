@@ -2,7 +2,7 @@ import pytest
 
 from orchd_sdk.models import Event
 from orchd_sdk.sensor import LocalCommunicator
-from orchd_sdk.event import global_reactions_event_bus
+from orchd_sdk.reaction import global_reactions_event_bus
 
 
 class TestLocalCommunicatorIntegration:
