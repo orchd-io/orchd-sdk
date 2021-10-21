@@ -75,6 +75,50 @@ class ReactionState:
     STOPPED = (4, 'STOPPED')
 
 
+class ReactionSinkManager:
+
+    def __init__(self, reaction):
+        self._sinks: Dict[str, AbstractSink] = dict()
+        self.reaction: Reaction = reaction
+
+    @property
+    def sinks(self) -> List[AbstractSink]:
+        return list(self._sinks.values())
+
+    def add_sink(self, sink_template: SinkTemplate):
+        try:
+            SinkClass = import_class(sink_template.sink_class)
+            sink: AbstractSink = SinkClass(sink_template)
+            self._sinks[sink.id] = sink
+            return sink
+        except ModuleNotFoundError as e:
+            raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?') from e
+
+    def create_sinks(self) -> Dict[str, AbstractSink]:
+        for sink in self.reaction.reaction_template.sinks:
+            try:
+                self.add_sink(sink)
+            except SinkError as e:
+                raise SinkError('Sink creation failed!') from e
+
+        return self._sinks
+
+    async def remove_sink(self, sink_id):
+        sink = self._sinks[sink_id]
+        await sink.close()
+        del self._sinks[sink_id]
+
+    def get_sink_by_id(self, sink_id):
+        try:
+            return self._sinks[sink_id]
+        except KeyError as e:
+            raise SinkError(f'Sink with given ID({sink_id}) Not Found!') from e
+
+    async def close(self):
+        for sink in self._sinks.values():
+            await sink.close()
+
+
 class Reaction(Observer):
     """
     Reaction handling management class.
@@ -87,53 +131,24 @@ class Reaction(Observer):
         super().__init__()
         self.id = str(uuid.uuid4())
         self.disposable: Disposable = ...
-        self._sinks: Dict[str, AbstractSink] = dict()
         self.reaction_template: ReactionTemplate = reaction_template
         self.handler: ReactionHandler = self.create_handler_object()
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
-        self.create_sinks()
+        self.sink_manager = ReactionSinkManager(self)
+        self.sink_manager.create_sinks()
         self.state = ReactionState.READY
 
     @property
     def sinks(self) -> List[AbstractSink]:
-        return list(self._sinks.values())
+        return list(self.sink_manager.sinks)
 
     def status(self):
         return ReactionInfo(
             id=self.id,
             state=self.state[1],
             template=self.reaction_template,
-            sinks_instances=[s.info for s in self._sinks.values()]
+            sinks_instances=[s.info for s in self.sink_manager.sinks]
         )
-
-    def create_sinks(self) -> Dict[str, AbstractSink]:
-        for sink in self.reaction_template.sinks:
-            try:
-                self.add_sink(sink)
-            except SinkError as e:
-                raise SinkError('Sink creation failed!') from e
-
-        return self._sinks
-
-    def add_sink(self, sink_template: SinkTemplate):
-        try:
-            SinkClass = import_class(sink_template.sink_class)
-            sink: AbstractSink = SinkClass(sink_template)
-            self._sinks[sink.id] = sink
-            return sink
-        except ModuleNotFoundError:
-            raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?')
-
-    async def remove_sink(self, sink_id):
-        sink = self._sinks[sink_id]
-        await sink.close()
-        del self._sinks[sink_id]
-
-    def get_sink_by_id(self, sink_id):
-        try:
-            return self._sinks[sink_id]
-        except KeyError:
-            raise SinkError(f'Sink with given ID({sink_id}) Not Found!')
 
     def create_handler_object(self) -> ReactionHandler:
         """Instantiate a :class:`ReactionHandler` indicated
@@ -155,7 +170,7 @@ class Reaction(Observer):
             self.sink(self.handler.handle(event, self.reaction_template))
 
     def sink(self, data):
-        for sink in self._sinks.values():
+        for sink in self.sink_manager.sinks:
             self._loop.create_task(sink.sink(data))
 
     def activate(self, event_bus: ReactionsEventBus):
@@ -184,8 +199,7 @@ class Reaction(Observer):
     async def close(self):
         if self.state == ReactionState.RUNNING:
             self.dispose()
-        for sink in self._sinks.values():
-            await sink.close()
+        await self.sink_manager.close()
 
 
 class DummyReaction(Reaction):
