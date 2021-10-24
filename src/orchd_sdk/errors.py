@@ -4,3 +4,11 @@ class ReactorError(Exception):
 
 class SinkError(Exception):
     """ Raised on Sink errors."""
+
+
+class ReactionError(Exception):
+    """ Raised on Reaction Management and Operation errors."""
+
+
+class ReactionHandlerError(Exception):
+    """ Raised by ReactionHandler implementations."""

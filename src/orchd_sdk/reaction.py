@@ -15,7 +15,7 @@ from rx.core.observer import Observer
 from rx.core.typing import Disposable
 from rx.subject import Subject
 
-from orchd_sdk.errors import SinkError
+from orchd_sdk.errors import SinkError, ReactionHandlerError, ReactionError
 from orchd_sdk.logging import logger
 from orchd_sdk.common import import_class
 from orchd_sdk.models import Event, ReactionTemplate, SinkTemplate, ReactionInfo
@@ -70,9 +70,11 @@ class ReactionHandler(ABC):
 
 
 class ReactionState:
+    PROVISIONING = (1, 'PROVISIONING')
     READY = (2, 'READY')
     RUNNING = (3, 'RUNNING')
     STOPPED = (4, 'STOPPED')
+    ERROR = (5, 'ERROR')
 
 
 class ReactionSinkManager:
@@ -94,12 +96,14 @@ class ReactionSinkManager:
         except ModuleNotFoundError as e:
             raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?') from e
 
-    def create_sinks(self) -> Dict[str, AbstractSink]:
+    async def create_sinks(self) -> Dict[str, AbstractSink]:
         for sink in self.reaction.reaction_template.sinks:
             try:
                 self.add_sink(sink)
             except SinkError as e:
-                raise SinkError('Sink creation failed!') from e
+                for sink in self.sinks:
+                    await sink.close()
+                raise SinkError('Error instantiating Reaction Sinks.') from e
 
         return self._sinks
 
@@ -129,13 +133,25 @@ class Reaction(Observer):
 
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
-        self.id = str(uuid.uuid4())
+        self.state = ReactionState.PROVISIONING
+        self.handler: ReactionHandler = ...
         self.disposable: Disposable = ...
+        self.id = str(uuid.uuid4())
         self.reaction_template: ReactionTemplate = reaction_template
-        self.handler: ReactionHandler = self.create_handler_object()
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
         self.sink_manager = ReactionSinkManager(self)
-        self.sink_manager.create_sinks()
+
+    async def init(self):
+        try:
+            self.handler = self.create_handler_object()
+            await self.sink_manager.create_sinks()
+        except SinkError as e:
+            self.state = ReactionState.ERROR
+            raise ReactionError("While creating reaction, an error occurred preparing Sinks.") from e
+        except ReactionHandlerError as e:
+            self.state = ReactionState.ERROR
+            raise ReactionError("While creating reaction, an error occurred preparing Reaction Handlers.") from e
+
         self.state = ReactionState.READY
 
     @property
@@ -157,8 +173,13 @@ class Reaction(Observer):
         class_name = class_parts.pop()
         module_name = '.'.join(class_parts)
 
-        if module_name not in sys.modules:
-            importlib.import_module(module_name)
+        try:
+            if module_name not in sys.modules:
+                importlib.import_module(module_name)
+        except ModuleNotFoundError as e:
+            raise ReactionHandlerError(f'Reaction Handler module/class '
+                                       f'{self.reaction_template.handler} not found!') from e
+
         HandlerClass = getattr(sys.modules.get(module_name), class_name)
         self.handler = HandlerClass()
 
