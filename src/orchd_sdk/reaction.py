@@ -179,9 +179,9 @@ class Reaction(Observer):
         try:
             if module_name not in sys.modules:
                 importlib.import_module(module_name)
-                HandlerClass = getattr(sys.modules.get(module_name), class_name)
-                self.handler = HandlerClass()
-                return self.handler
+            HandlerClass = getattr(sys.modules.get(module_name), class_name)
+            self.handler = HandlerClass()
+            return self.handler
         except (ModuleNotFoundError, AttributeError) as e:
             raise ReactionHandlerError(f'Reaction Handler module/class '
                                        f'{self.reaction_template.handler} not found!') from e
