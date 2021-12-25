@@ -1,11 +1,15 @@
 import uuid
+import logging
+
 from typing import Any
 from abc import abstractmethod, ABC
 
-from orchd_sdk.logging import logger
 from orchd_sdk.errors import SinkError
 from orchd_sdk.common import import_class
 from orchd_sdk.models import SinkTemplate, Sink
+
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractSink(ABC):

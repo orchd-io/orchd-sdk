@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import json
+import logging
 import uuid
 from asyncio import AbstractEventLoop
 
@@ -16,13 +17,15 @@ from rx.core.typing import Disposable
 from rx.subject import Subject
 
 from orchd_sdk.errors import SinkError, ReactionHandlerError, ReactionError
-from orchd_sdk.logging import logger
 from orchd_sdk.common import import_class
 from orchd_sdk.models import Event, ReactionTemplate, SinkTemplate, ReactionInfo
 from orchd_sdk.sink import AbstractSink, DummySink
 
 REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
                                  'reaction.schema.json')
+
+
+logger = logging.getLogger(__name__)
 
 
 class ReactionsEventBus:
@@ -176,14 +179,12 @@ class Reaction(Observer):
         try:
             if module_name not in sys.modules:
                 importlib.import_module(module_name)
-        except ModuleNotFoundError as e:
+                HandlerClass = getattr(sys.modules.get(module_name), class_name)
+                self.handler = HandlerClass()
+                return self.handler
+        except (ModuleNotFoundError, AttributeError) as e:
             raise ReactionHandlerError(f'Reaction Handler module/class '
                                        f'{self.reaction_template.handler} not found!') from e
-
-        HandlerClass = getattr(sys.modules.get(module_name), class_name)
-        self.handler = HandlerClass()
-
-        return self.handler
 
     def on_next(self, event: Event) -> None:
         if event.event_name in self.reaction_template.triggered_on or \
