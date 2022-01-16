@@ -2,6 +2,7 @@ import uuid
 
 from typing import Dict, List, Any, Union, Optional
 
+import pydantic
 from pydantic import Field, BaseModel
 
 
@@ -318,3 +319,26 @@ class Sensor(BaseModel):
         title='Events discarded',
         description='Number of events sensed, captured but discarded.'
     )
+
+
+class Project(BaseModel):
+    class Config:
+        validate_assignment = True
+
+    version: str = '0.0'
+    author: str = 'unknown'
+    description: str = 'no description'
+    license: str = 'unknown'
+    name: str = Field(
+        title='Name of the Project',
+        pattern='^((_?[a-z0-9])*|(_?[A-Z0-9])*|_)$',
+        default='my_orchd_project'
+    )
+    namespace: str = ''
+    main_package: str = 'project'
+    reactions: Dict[str, str] = {}
+    sensors: Dict[str, str] = {}
+
+    def add_reaction(self, name: str, handler: str):
+        self.reactions[name] = handler
+

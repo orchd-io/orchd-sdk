@@ -1,0 +1,2 @@
+git+ssh://git@github.com/iiot-orchestrator/orchd-sdk.git@master#egg=orchd_sdk
+pydantic

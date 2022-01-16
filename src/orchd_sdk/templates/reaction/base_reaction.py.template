@@ -1,0 +1,32 @@
+import json
+
+import pydantic
+
+from orchd_sdk.errors import ReactionError
+from orchd_sdk.models import ReactionTemplate, Event
+from orchd_sdk.reaction import Reaction, ReactionHandler
+
+REACTION_NAME = '$reaction_name'
+
+
+class $reaction_class_name (Reaction):
+
+    template = ReactionTemplate(
+        name='$reaction_name',
+        version='$version',
+        triggered_on=$triggers,
+        handler='$reaction_handler_fqn_class',
+        handler_parameters=$handler_params,
+        sinks=$sinks,
+        active=$active
+    )
+
+    def __init__(self, reaction_template: ReactionTemplate):
+        super.__init__(${reaction_class_name}.template)
+
+
+class $reaction_handler_class_name (ReactionHandler):
+
+    def handle(self, event: Event, reaction: ReactionTemplate):
+        """Implement here the logic of you reaction handler"""
+        print(f"Event handled by $reaction_name")

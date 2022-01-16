@@ -1,3 +1,5 @@
+from os.path import join
+
 from setuptools import setup, find_packages
 
 
@@ -5,7 +7,8 @@ version = open('src/orchd_sdk/VERSION').read().strip()
 
 requirements = [
     'rx',
-    'pydantic'
+    'pydantic',
+    'GitPython'
 ]
 
 test_requirements = [
@@ -40,10 +43,16 @@ setup(
     package_dir={
         '': 'src',
     },
-    packages=find_packages(where='src'),
+    packages=find_packages(where='src', exclude=('templates',)),
     package_data={'orchd_sdk': [
         'VERSION',
         'reaction.schema.json',
-        'logger.ini'
-    ]}
+        'logger.ini',
+        'project_template/**'
+    ]},
+    entry_points={
+        'console_scripts': [
+            'orchd-sdk=orchd_sdk.cli:cli',
+        ]
+    }
 )

@@ -8,3 +8,5 @@ orchd_sdk.egg-info
 dist
 *.pyc
 test.json
+reaction_sample.py
+sensor_sample.py
