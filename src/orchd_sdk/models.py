@@ -2,8 +2,10 @@ import uuid
 
 from typing import Dict, List, Any, Union, Optional
 
-import pydantic
 from pydantic import Field, BaseModel
+
+import orchd_sdk
+from orchd_sdk import util
 
 
 def uuid_str_factory():
@@ -325,6 +327,12 @@ class Project(BaseModel):
     class Config:
         validate_assignment = True
 
+    def __init__(self, **kwargs):
+        main_package_name = util.kebab_case_to_snake_case(kwargs.get('name'))
+        kwargs['main_package'] = main_package_name
+        super().__init__(**kwargs)
+
+    orchd_sdk_version = orchd_sdk.version()
     version: str = '0.0'
     author: str = 'unknown'
     description: str = 'no description'
@@ -338,7 +346,14 @@ class Project(BaseModel):
     main_package: str = 'project'
     reactions: Dict[str, str] = {}
     sensors: Dict[str, str] = {}
+    sinks: Dict[str, str] = {}
 
     def add_reaction(self, name: str, handler: str):
         self.reactions[name] = handler
+
+    def add_sensor(self, name: str, class_: str):
+        self.sensors[name] = class_
+
+    def add_sink(self, name: str, class_: str):
+        self.sinks[name] = class_
 
