@@ -59,7 +59,7 @@ class DummySink(AbstractSink):
         super().__init__(template)
 
     async def sink(self, data):
-        logger.debug(f'Data SUNK by Dummy! Actually, I did Nothing! :P {data}')
+        logger.info(f'Data SUNK by Dummy! Actually, I did Nothing! :P {data}')
 
     async def close(self):
         pass
