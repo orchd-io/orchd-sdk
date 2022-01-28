@@ -8,7 +8,8 @@ version = open('src/orchd_sdk/VERSION').read().strip()
 requirements = [
     'rx',
     'pydantic',
-    'GitPython'
+    'GitPython',
+    'colorama'
 ]
 
 test_requirements = [
