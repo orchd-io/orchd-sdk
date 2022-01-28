@@ -97,7 +97,8 @@ class ReactionSinkManager:
             self._sinks[sink.id] = sink
             return sink
         except ModuleNotFoundError as e:
-            raise SinkError('Not able to load Sink class. Is it in PYTHONPATH?') from e
+            raise SinkError(f'Not able to load Sink class {sink_template.sink_class}. '
+                            f'Is it in PYTHONPATH?') from e
 
     async def create_sinks(self) -> Dict[str, AbstractSink]:
         for sink in self.reaction.reaction_template.sinks:
@@ -106,7 +107,7 @@ class ReactionSinkManager:
             except SinkError as e:
                 for sink in self.sinks:
                     await sink.close()
-                raise SinkError('Error instantiating Reaction Sinks.') from e
+                raise e
 
         return self._sinks
 
@@ -156,6 +157,7 @@ class Reaction(Observer):
             raise ReactionError("While creating reaction, an error occurred preparing Reaction Handlers.") from e
 
         self.state = ReactionState.READY
+        return self
 
     @property
     def sinks(self) -> List[AbstractSink]:
@@ -193,6 +195,7 @@ class Reaction(Observer):
 
     def sink(self, data):
         for sink in self.sink_manager.sinks:
+            logger.info(f"Sink {sink.id} scheduled to be executed.")
             self._loop.create_task(sink.sink(data))
 
     def activate(self, event_bus: ReactionsEventBus):
