@@ -72,7 +72,7 @@ class AbstractSensor(ABC):
         self.id = str(uuid.uuid4())
         self.sensor_template = sensor_template
         self.communicator = communicator
-        self.sensing_interval = sensing_interval
+        self.sensing_interval = sensor_template.sensing_interval or sensing_interval
         self._state = SensorState.READY
         self._start_task: Task = None
         self._events_counter = -1
