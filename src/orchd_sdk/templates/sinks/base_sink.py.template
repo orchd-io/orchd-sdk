@@ -1,0 +1,24 @@
+import logging
+
+from orchd_sdk.models import SinkTemplate
+from orchd_sdk.sink import AbstractSink
+
+logger = logging.getLogger()
+
+
+class $sink_class_name (AbstractSink):
+    """Dummy Sink for testing purposes"""
+
+    template = SinkTemplate(sink_class='$sink_class_fq_name',
+                            name='$sink_namespaced_name',
+                            version='$sink_version',
+                            properties=$sink_properties)
+
+    def __init__(self, template: SinkTemplate):
+        super().__init__(template)
+
+    async def sink(self, data):
+        logger.info(f'{$sink_class_name}: Data SUNK! Actually, I did Nothing! :P {data}')
+
+    async def close(self):
+        pass
