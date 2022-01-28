@@ -21,7 +21,7 @@ class TestReactionHandler:
         """
         Tests if a reaction will handle the event when received.
         """
-        reaction = DummyReaction()
+        reaction = await DummyReaction().init()
         with patch.object(reaction.handler, 'handle') as mock:
             reaction.on_next(test_event)
 
@@ -33,7 +33,7 @@ class TestReactionHandler:
         test the handling of an event when it comes from the ReactionEventBus.
         """
         event_bus = ReactionsEventBus()
-        reaction = DummyReaction()
+        reaction = await DummyReaction().init()
         handle_mock = Mock()
         reaction.handler.handle = handle_mock
 
