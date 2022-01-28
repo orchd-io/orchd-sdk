@@ -56,3 +56,4 @@ class TestSnakeCaseToCamelCaseFunction:
     def test_given_not_snake_case_word_throw_exception(self, given):
         with pytest.raises(orchd_sdk.errors.InvalidInputError) as e:
             snake_to_camel_case(given)
+
