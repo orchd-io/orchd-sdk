@@ -4,9 +4,9 @@ import json
 import os
 import subprocess
 import sys
-import click
-
 from time import sleep
+
+import click
 
 from orchd_sdk import version
 from orchd_sdk.models import Project
@@ -15,7 +15,6 @@ from orchd_sdk.project import ReactionBootstrapper, ProjectBootstrapper, Reactio
     SinkProperties, SinkBootstrapper
 from orchd_sdk.util import is_snake_case, is_kebab_case
 
-REACTION_SKELETON_REPO = 'https://github.com/iiot-orchestrator/orchd-reaction-skeleton.git'
 PROJECT = None
 
 try:
@@ -45,25 +44,43 @@ def kebab_case_validator(_, __, value):
     raise click.BadParameter('Name of must be kebab case. e.g "some-valid-name"')
 
 
-def is_twine_present():
+def check_twine_is_present():
     try:
         import twine
-        return True
     except ImportError:
-        return False
+        click.echo('Twine is required to deploy, and it is not present! '
+                   'Install it with "pip install twine" and try again!')
+        sys.exit(-1)
+
+
+def check_current_dir_is_project_root(ctx):
+    if not PROJECT and not ctx.invoked_subcommand == 'project':
+        print('Error! Be sure to be in a orchd-sdk project root!')
+        sys.exit(-1)
+
 
 def echo_operation_result(operation: str, result: bool):
-    click.secho(operation, bold=True, nl=False)
+    click.secho(operation + '... ', bold=True, nl=False)
     if result:
         click.secho('OK!', fg='green')
     else:
-        click.secho('FAILED!', fg='red')
+        click.secho(' FAILED!', fg='red')
     sleep(1)
+
 
 def echo_warning(message: str):
     click.secho('WARNING... ', bold=True, nl=False)
     click.secho(message, fg='yellow')
     sleep(1)
+
+
+def run_shell_command(parameters, cmd_display_name, exit_on_error=True, error_msg='Error. Aborting!'):
+    result = subprocess.run(parameters)
+    echo_operation_result(cmd_display_name, not bool(result.returncode))
+    if result.returncode != 0 and exit_on_error:
+        click.echo(error_msg)
+        sys.exit(-1)
+
 
 @click.group()
 def actions_group():
@@ -185,72 +202,60 @@ def new_project(**kwargs):
 @actions_group.command('test')
 def test():
     """Run project tests"""
-    subprocess.run('pytest')
+    run_shell_command(['pytest', '-q'], cmd_display_name='TESTS')
 
 
 @actions_group.command('build')
-@click.option('--force', help='Forces build even if tests fail.', is_flag=True)
-def build(force):
+@click.option('--skip-tests', help='Skip tests.', is_flag=True)
+@click.pass_context
+def build(ctx, skip_tests):
     """Build the project and generates the packages"""
-    process = subprocess.run('pytest')
-    if process.returncode == 0 or force:
-        subprocess.run(['python', 'setup.py', 'sdist'])
-    else:
-        click.echo("Not able to build. Tests failed. Use --force if you now what you are doing.")
+    if not skip_tests:
+        ctx.forward(test)
+
+    run_shell_command(['python', 'setup.py', 'sdist', 'bdist_wheel'], cmd_display_name='BUILD',
+                      error_msg='Error, Not able to build.')
 
 
 @actions_group.command('deploy')
 @click.option('--upload', help='Deploy definitely the package.', is_flag=True)
-@click.option('--force', help='Force deplyment even if tests Fail.', is_flag=True)
-def deploy(upload, force):
+@click.option('--skip-tests', help='Skip tests', is_flag=True)
+@click.pass_context
+def deploy(ctx, upload, skip_tests):
     """Deploy your project to PyPi"""
-    if not is_twine_present():
-        click.echo('Twine is required to deploy, and it is not present! '
-                   'Install it with "pip install twine" and try again!')
-        sys.exit(-1)
+    check_twine_is_present()
+    ctx.invoke(build, skip_tests=skip_tests)
+    upload_package_to_pypi(upload)
+
+
+def upload_package_to_pypi(test_upload=False):
+    if test_upload:
+        run_shell_command(['twine', 'upload'], cmd_display_name='UPLOAD')
     else:
-        is_tests_passed = subprocess.run(['pytest', '-q']).returncode == 0
-        echo_operation_result('TESTS... ', is_tests_passed)
-        if not is_tests_passed:
-            if not force:
-                sys.exit(-1)
-            echo_warning('Forcing deployment! (--force used)!"')
+        upload_package_test()
 
-        is_build_success = subprocess.run(['python', 'setup.py', 'sdist', 'bdist_wheel']).returncode == 0
-        echo_operation_result('BUILD... ', is_build_success)
-        if not is_build_success:
-            sys.exit(-1)
 
-        is_deployment_check_success = subprocess.run(['twine', 'check', './dist/*']).returncode == 0
-        echo_operation_result('READY TO DEPLOY...', bool(is_deployment_check_success))
-        if not is_deployment_check_success:
-            click.echo('While checking the packages, Twine found some Issues. Fix It before uploading!')
-            sys.exit(-1)
-
-        if upload:
-            subprocess.run(['twine', 'upload'])
-        else:
-            click.echo('We will do a test at PyPi Test Server (https://test.pypi.org) '
-                       'before uploading to PyPi. You need an account there. YOUR PyPi '
-                       'CREDENTIALS will not work.')
-            click.confirm('Are you ready to procced?', abort=True)
-            subprocess.run(['twine', 'upload', '--skip-existing',  '-r', 'testpypi', './dist/*'])
-            echo_warning('Package was not Upload to production Server yet! (testpypi)!')
-            click.echo('Go to test.pypi.org and verify the package.')
-            click.secho('To finally deploy to PyPi run "orchd-sdk deploy --now"', bold=True)
+def upload_package_test():
+    click.echo('We will do a test at PyPi Test Server (https://test.pypi.org) '
+               'before uploading to PyPi. You need an account there. YOUR PyPi '
+               'CREDENTIALS will not work.')
+    click.confirm('Are you ready to proceed?', abort=True)
+    run_shell_command(['twine', 'upload', '--skip-existing', '-r', 'testpypi', './dist/*'],
+                      cmd_display_name='UPLOAD TEST')
+    echo_warning('Package was not Upload to production Server yet! (testpypi)!')
+    click.echo('Go to test.pypi.org and verify the package.')
+    click.secho('To deploy to PyPi run "orchd-sdk deploy --upload"', bold=True)
 
 
 @actions_group.command(cls=click.CommandCollection, sources=[new_actions_group])
 @click.pass_context
 def new(ctx):
     """Create new Orchd Assets (Reactions, Sensors, Sinks)"""
-
+    check_current_dir_is_project_root(ctx)
 
 
 @click.group(cls=click.CommandCollection, sources=[actions_group])
 @click.version_option(version())
 @click.pass_context
 def cli(ctx):
-    if not PROJECT and not ctx.invoked_subcommand == 'project':
-        print('Error! Be sure to be in a orchd-sdk project root!')
-        sys.exit(-1)
+    pass

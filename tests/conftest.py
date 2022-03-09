@@ -2,7 +2,13 @@ import pytest
 
 from orchd_sdk.models import SensorTemplate, Sensor, SinkTemplate, Sink, \
     ReactionTemplate, ReactionInfo
+from orchd_sdk.reaction import ReactionsEventBus
 from orchd_sdk.sensor import DummySensor, SensorState
+
+
+@pytest.fixture()
+def reaction_event_bus():
+    yield ReactionsEventBus()
 
 
 @pytest.fixture

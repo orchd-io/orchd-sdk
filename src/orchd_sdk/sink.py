@@ -34,7 +34,7 @@ class AbstractSink(ABC):
         self._info = Sink(id=self.id, template=template)
 
     @abstractmethod
-    async def close(self):
+    def close(self):
         pass
 
     @property
@@ -55,8 +55,8 @@ class DummySink(AbstractSink):
                             version='0.1',
                             properties={'endpoint': 'https://example.com/test'})
 
-    def __init__(self, template: SinkTemplate):
-        super().__init__(template)
+    def __init__(self, template: SinkTemplate = None):
+        super().__init__(template or self.template)
 
     async def sink(self, data):
         logger.info(f'Data SUNK by Dummy! Actually, I did Nothing! :P {data}')

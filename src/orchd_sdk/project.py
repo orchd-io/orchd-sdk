@@ -5,39 +5,65 @@ import shutil
 import string
 from string import Template
 
+from git import Repo
+
 from orchd_sdk import util
 from orchd_sdk.models import Project
 
-REACTION_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__),
-                                      'templates/reactions/base_reaction.py.template')
-SENSOR_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__),
-                                    'templates/sensors/base_sensor.py.template')
-SINK_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__),
-                                  'templates/sinks/base_sink.py.template')
+
+PROJECT_TEMPLATE_REPO = 'https://github.com/iiot-orchestrator/orchd-project-template.git'
+PROJECT_TEMPLATE_DIR = '.orchd'
+REACTION_TEMPLATE_FILE = os.path.join(PROJECT_TEMPLATE_DIR,
+                                      'src/pkg_name/reactions/base_reaction.py.template')
+SENSOR_TEMPLATE_FILE = os.path.join(PROJECT_TEMPLATE_DIR,
+                                    'src/pkg_name/sensors/base_sensor.py.template')
+SINK_TEMPLATE_FILE = os.path.join(PROJECT_TEMPLATE_DIR,
+                                  'src/pkg_name/sinks/base_sink.py.template')
 
 
 class ProjectBootstrapper:
 
     @staticmethod
     def setup_project(project: Project):
-        ProjectFoldersHandler.prepare_project_folders(project)
+        folder_handler = ProjectFoldersHandler(project)
+        folder_handler.prepare_project_folders()
         ProjectTemplateFilesHandler(project).process_templates()
 
 
 class ProjectFoldersHandler:
-    @staticmethod
-    def prepare_project_folders(project: Project):
-        ProjectFoldersHandler.copy_skeleton(project)
-        ProjectFoldersHandler.rename_main_package_folder(project)
+
+    def __init__(self, project: Project):
+        self.project = project
+
+    def prepare_project_folders(self):
+        self.clone_orchd_project_template()
+        self.copy_skeleton()
+        self.rename_main_package_folder()
+
+    def copy_skeleton(self):
+        shutil.copytree(self.template_dir(), self.project_dir(), dirs_exist_ok=True,
+                        ignore=lambda src, names: [n for n in names if n in self.initial_ignored_files()])
 
     @staticmethod
-    def copy_skeleton(project: Project):
-        shutil.copytree(os.path.join(os.path.dirname(__file__), 'templates/project'),
-                        f'./{project.name}')
+    def initial_ignored_files():
+        return ['base_sink.py.template', 'base_sensor.py.template', 'base_reaction.py.template']
+
+    def rename_main_package_folder(self):
+        shutil.move(f'{self.project_dir()}/src/pkg_name', f'{self.project_dir()}/src/{self.project.main_package}')
 
     @staticmethod
-    def rename_main_package_folder(project: Project):
-        shutil.move(f'./{project.name}/src/pkg_name', f'./{project.name}/src/{project.main_package}')
+    def is_template_folder_present():
+        return os.path.exists(PROJECT_TEMPLATE_DIR)
+
+    def clone_orchd_project_template(self):
+        Repo.clone_from(PROJECT_TEMPLATE_REPO, self.template_dir())
+        shutil.rmtree(os.path.join(self.template_dir(), '.git'))
+
+    def template_dir(self):
+        return os.path.join(self.project_dir(), PROJECT_TEMPLATE_DIR)
+
+    def project_dir(self):
+        return os.path.join(os.getcwd(), self.project.name)
 
 
 class ProjectTemplateFilesHandler:

@@ -1,29 +1,19 @@
 import asyncio
 import importlib
-import json
 import logging
-import uuid
-from asyncio import AbstractEventLoop
-
 import sys
-
-from os import path
+import uuid
 from abc import abstractmethod, ABC
-
-from typing import Any, Dict, List
+from asyncio import AbstractEventLoop
+from typing import Any, Dict, List, Union, Tuple
 
 from rx.core.observer import Observer
-from rx.core.typing import Disposable
 from rx.subject import Subject
 
-from orchd_sdk.errors import SinkError, ReactionHandlerError, ReactionError
 from orchd_sdk.common import import_class
+from orchd_sdk.errors import SinkError, ReactionHandlerError, ReactionError
 from orchd_sdk.models import Event, ReactionTemplate, SinkTemplate, ReactionInfo
 from orchd_sdk.sink import AbstractSink, DummySink
-
-REACTION_SCHEMA_FILE = path.join(path.dirname(path.realpath(__file__)),
-                                 'reaction.schema.json')
-
 
 logger = logging.getLogger(__name__)
 
@@ -69,15 +59,15 @@ class ReactionHandler(ABC):
         :param event: The event that triggered the action.
         :param reaction: The reaction object.
         """
-        pass
 
 
 class ReactionState:
-    PROVISIONING = (1, 'PROVISIONING')
+    UNINITIALIZED = (1, 'PROVISIONING')
     READY = (2, 'READY')
     RUNNING = (3, 'RUNNING')
     STOPPED = (4, 'STOPPED')
     ERROR = (5, 'ERROR')
+    FINALIZED = (6, 'FINALIZED')
 
 
 class ReactionSinkManager:
@@ -100,21 +90,25 @@ class ReactionSinkManager:
             raise SinkError(f'Not able to load Sink class {sink_template.sink_class}. '
                             f'Is it in PYTHONPATH?') from e
 
-    async def create_sinks(self) -> Dict[str, AbstractSink]:
-        for sink in self.reaction.reaction_template.sinks:
+    async def create_sinks(self, sink_templates: List[SinkTemplate]) -> Dict[str, AbstractSink]:
+        for template in sink_templates:
             try:
-                self.add_sink(sink)
+                self.add_sink(template)
             except SinkError as e:
                 for sink in self.sinks:
                     await sink.close()
+                    del self._sinks[sink.id]
                 raise e
 
         return self._sinks
 
     async def remove_sink(self, sink_id):
-        sink = self._sinks[sink_id]
-        await sink.close()
-        del self._sinks[sink_id]
+        try:
+            sink = self._sinks[sink_id]
+            await sink.close()
+            del self._sinks[sink_id]
+        except KeyError as e:
+            raise SinkError(f'Sink with given ID{sink_id} not Found!') from e
 
     def get_sink_by_id(self, sink_id):
         try:
@@ -125,6 +119,7 @@ class ReactionSinkManager:
     async def close(self):
         for sink in self._sinks.values():
             await sink.close()
+        self._sinks = dict()
 
 
 class Reaction(Observer):
@@ -137,9 +132,9 @@ class Reaction(Observer):
 
     def __init__(self, reaction_template: ReactionTemplate):
         super().__init__()
-        self.state = ReactionState.PROVISIONING
-        self.handler: ReactionHandler = ...
-        self.disposable: Disposable = ...
+        self.state: Tuple = ReactionState.UNINITIALIZED
+        self.handler: Union[ReactionHandler, None] = None
+        self.disposable: Union[ReactionHandler, None] = None
         self.id = str(uuid.uuid4())
         self.reaction_template: ReactionTemplate = reaction_template
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
@@ -148,7 +143,7 @@ class Reaction(Observer):
     async def init(self):
         try:
             self.handler = self.create_handler_object()
-            await self.sink_manager.create_sinks()
+            await self.sink_manager.create_sinks(self.reaction_template.sinks)
         except SinkError as e:
             self.state = ReactionState.ERROR
             raise ReactionError("While creating reaction, an error occurred preparing Sinks.") from e
@@ -204,27 +199,20 @@ class Reaction(Observer):
                      f'Activated. ID({self.id}).')
         self.state = ReactionState.RUNNING
 
-    @staticmethod
-    def schema() -> str:
-        """
-        Load the :class:`ReactionTemplate` schema definition.
-
-        :return: Return the schema as string.
-        """
-        with open(REACTION_SCHEMA_FILE) as fd:
-            schema = json.loads(fd.read())
-        return schema
-
     def dispose(self) -> None:
         self.disposable.dispose()
         super().dispose()
         self.disposable = None
         self.state = ReactionState.STOPPED
 
+    async def stop(self):
+        self.dispose()
+
     async def close(self):
         if self.state == ReactionState.RUNNING:
             self.dispose()
         await self.sink_manager.close()
+        self.state = ReactionState.FINALIZED
 
 
 class DummyReaction(Reaction):
@@ -241,8 +229,8 @@ class DummyReaction(Reaction):
         active=True
     )
 
-    def __init__(self):
-        super().__init__(DummyReaction.template)
+    def __init__(self, custom_template: ReactionTemplate = None):
+        super().__init__(custom_template or DummyReaction.template)
 
 
 class DummyReactionHandler(ReactionHandler):
