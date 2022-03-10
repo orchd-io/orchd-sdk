@@ -5,9 +5,7 @@ name: Build Packages
 
 on:
   push:
-    branches: [ master, develop ]
-  pull_request:
-    branches: [ master, develop ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -33,4 +31,9 @@ jobs:
     - name: Test with pytest
       run: |
         tox
+    - name: Build Packages
+      run: |
         python setup.py sdist
+    - name: Deploy to PyPi
+      run: |
+        twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }}
