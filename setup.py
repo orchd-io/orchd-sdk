@@ -1,5 +1,3 @@
-from os.path import join
-
 from setuptools import setup, find_packages
 
 
@@ -32,6 +30,7 @@ setup(
         'Intended Audience :: Information Technology',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: System :: Distributed Computing'
     ],
     author='Mathias Santos de Brito',
@@ -47,9 +46,7 @@ setup(
     packages=find_packages(where='src', exclude=('templates',)),
     package_data={'orchd_sdk': [
         'VERSION',
-        'reaction.schema.json',
         'logger.ini',
-        'project_template/**'
     ]},
     entry_points={
         'console_scripts': [
