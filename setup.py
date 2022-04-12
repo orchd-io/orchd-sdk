@@ -1,7 +1,11 @@
+from sphinx.setup_command import BuildDoc
+cmdclass = {'build_sphinx': BuildDoc}
 from setuptools import setup, find_packages
 
 
+name = 'orchd-sdk'
 version = open('src/orchd_sdk/VERSION').read().strip()
+author = "Mathias Santos de Brito"
 
 requirements = [
     'rx',
@@ -19,8 +23,13 @@ test_requirements = [
     'mypy'
 ]
 
+doc_requirements = [
+    'sphinx',
+    'sphinx_rtd_theme'
+]
+
 setup(
-    name='orchd_sdk',
+    name=name,
     version=version,
     description='SDK for Orchd Ecosystem Applications',
     keywords='service resource orchestration edge cloud',
@@ -33,12 +42,13 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Topic :: System :: Distributed Computing'
     ],
-    author='Mathias Santos de Brito',
+    author=author,
     author_email='mathias.brito@me.com',
 
     install_requires=requirements,
     extras_require={
-        'test': test_requirements
+        'test': test_requirements,
+        'doc': doc_requirements
     },
     package_dir={
         '': 'src',
