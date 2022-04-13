@@ -1,7 +1,4 @@
-from sphinx.setup_command import BuildDoc
-cmdclass = {'build_sphinx': BuildDoc}
 from setuptools import setup, find_packages
-
 
 name = 'orchd-sdk'
 version = open('src/orchd_sdk/VERSION').read().strip()
