@@ -146,7 +146,7 @@ class Sink(BaseModel):
 
 class ReactionTemplate(BaseModel):
     """
-    Representation of a Reaction Template to be used to create :class:`Reaction`s.
+    Representation of a Reaction Template to be used to create `Reaction`.
 
     Nodes can react on events detected in the network or internally in the node.
     Some example of possible events are:

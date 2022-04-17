@@ -6,12 +6,18 @@
 Welcome to Orchd SDK's documentation!
 =====================================
 
+Welcome to the Orchd SDK documentation page. Here you will find all the necessary
+information to develop your extensions to Orchd. The `orchd-sdk CLI.` will help
+you with boilerplate code generation and project management making it easy to
+extend orchd to your needs. To better understand how orchd and the orchd-sdk are
+related, check the Orchd Architecture section of this documentation.
+
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    about
-   architecture
    orchd-sdk-usage
    reference
 
