@@ -1,8 +1,13 @@
 #Orchd SDK
 
-**orchd_sdk** package holds the basics mechanisms
-used by Orchd however can be used to build reactive
-applications using the event based system.
+> This Software is released under the MIT License, check the license file (LICENSE.md)
+
+**Orchd SDK** package holds the basics mechanisms
+used by Orchd.
+
+Form more information check the Official Documentation at:
+
+[Orchd SDK Official Documentation]()
 
 Orchd differentiates from other solutions to use the
 concept of constant sensing and reacts. Reactions
