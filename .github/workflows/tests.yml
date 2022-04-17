@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8, 3.9, 3.10]
+        python-version: [3.8, 3.9, '3.10']
 
     steps:
     - uses: actions/checkout@v2
@@ -32,3 +32,13 @@ jobs:
     - name: Test with pytest
       run: |
         tox
+    - name: Test build and deploy
+      run: |
+        python setup.py sdist bdist_wheel
+    - name: Test build and deploy
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+      run: |
+        pip install twine
+        twine upload --skip-existing testpypi ./dist/*
