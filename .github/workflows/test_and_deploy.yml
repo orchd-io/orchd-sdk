@@ -24,7 +24,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        git config --global url."https://${{ secrets.DEPENDENCIES_TOKEN }}@".insteadOf "ssh://git@"
         python -m pip install --upgrade pip
         python -m pip install pytest pytest-asyncio tox
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
@@ -33,7 +32,7 @@ jobs:
         tox
     - name: Build Packages
       run: |
-        python setup.py sdist
+        python setup.py sdist bdist_wheel
     - name: Deploy to PyPi
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
