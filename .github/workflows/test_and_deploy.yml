@@ -10,7 +10,7 @@ on:
 jobs:
   build:
 
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -35,5 +35,9 @@ jobs:
       run: |
         python setup.py sdist
     - name: Deploy to PyPi
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }}
+        pip install twine
+        twine upload
