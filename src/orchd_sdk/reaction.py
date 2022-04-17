@@ -19,12 +19,13 @@ import importlib
 import logging
 import sys
 import uuid
+
 from abc import abstractmethod, ABC
 from asyncio import AbstractEventLoop
 from typing import Any, Dict, List, Union, Tuple
 
-from rx.core.observer import Observer
-from rx.subject import Subject
+from reactivex.observer import Observer
+from reactivex.subject import Subject
 
 from orchd_sdk.common import import_class
 from orchd_sdk.errors import SinkError, ReactionHandlerError, ReactionError
@@ -38,8 +39,8 @@ class ReactionsEventBus:
     """
     The Reaction Event Bus.
 
-    The Reaction Event Bus wraps a rx.subject.Subject and offers
-    a method to register Reactions (they are rx.core.observer.Observers).
+    The Reaction Event Bus wraps a reactivex.subject.Subject and offers
+    a method to register Reactions (they are reactivex.observer.Observer).
 
     Whenever ones wants to propagate an event on the system CAN do this
     through an global reaction event bus. However it is allowed to create

@@ -21,7 +21,7 @@ version = open('src/orchd_sdk/VERSION').read().strip()
 author = "Mathias Santos de Brito"
 
 requirements = [
-    'rx',
+    'reactivex',
     'pydantic',
     'GitPython',
     'colorama'
@@ -53,6 +53,7 @@ setup(
         'Operating System :: POSIX',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: System :: Distributed Computing'
     ],
     author=author,
