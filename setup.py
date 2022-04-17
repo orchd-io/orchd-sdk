@@ -61,7 +61,7 @@ setup(
     install_requires=requirements,
     extras_require={
         'test': test_requirements,
-        'doc': doc_requirements
+        'docs': doc_requirements
     },
     package_dir={
         '': 'src',

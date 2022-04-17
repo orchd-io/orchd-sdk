@@ -14,7 +14,7 @@ sink_sample.py
 .orchd_project_template
 
 docs/_build/
-doc/build
-doc/_build
+docs/build
+docs/_build
 
 .DS_Store
