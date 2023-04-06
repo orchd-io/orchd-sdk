@@ -27,7 +27,7 @@ jobs:
     - name: Install Orchd Agent
       uses: actions/checkout@v2
       with:
-          ssh-key: ${{ secrets.ORCHD_AGENT_CLONE_KEY }}
+          token: ${{ secrets.ORCHD_AGENT_GITHUB_ACTIONS }}
           repository: iiot-orchestrator/orchd-agent
           ref: master
           path: orchd-agent
