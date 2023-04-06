@@ -30,12 +30,12 @@ jobs:
           token: ${{ secrets.ORCHD_AGENT_GITHUB_ACTIONS }}
           repository: orchd-io/orchd-agent
           ref: master
-          path: /orchd-agent
+          path: reqs/orchd-agent
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install pytest wheel pytest-asyncio tox
-        python -m pip install /orchd_agent
+        python -m pip install reqs/orchd_agent
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Start test agent
       run: |
