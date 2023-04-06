@@ -27,6 +27,7 @@ jobs:
     - name: Install Orchd Agent
       uses: actions/checkout@v2
       with:
+          token: ${{ secrets.ORCHD_AGENT_GITHUB_ACTIONS }}
           repository: orchd-io/orchd-agent
           ref: master
           path: orchd-agent
