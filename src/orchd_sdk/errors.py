@@ -14,6 +14,7 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
 class InvalidInputError(Exception):
     """
     Invalid input given.
@@ -34,3 +35,27 @@ class ReactionError(Exception):
 
 class ReactionHandlerError(Exception):
     """ Raised by ReactionHandler implementations."""
+
+
+class InvalidRequestError(Exception):
+    """ Raised when the request is invalid."""
+
+
+class NotFoundError(Exception):
+    """ Raised when the resource is not found."""
+
+
+class ServerError(Exception):
+    """ Raised when the server is not available."""
+
+
+def handle_http_errors(response):
+    if response.status == 404:
+        raise NotFoundError()
+    elif response.status == 400 or response.status == 422:
+        raise InvalidRequestError()
+    elif response.status == 500:
+        raise ServerError()
+    elif response.status > 400:
+        raise Exception(response.status, response.reason)
+    return response
