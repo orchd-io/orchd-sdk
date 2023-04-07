@@ -27,6 +27,16 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pytest wheel pytest-asyncio tox
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install Orchd Agent
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.ORCHD_AGENT_GITHUB_ACTIONS }}
+        repository: orchd-io/orchd-agent
+        ref: master
+        path: reqs/orchd-agent
+    - name: Start test agent
+      run: |
+        orchd start &
     - name: Test with pytest
       run: |
         tox
