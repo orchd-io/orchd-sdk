@@ -256,6 +256,7 @@ class DummyReactionHandler(ReactionHandler):
     """
     def handle(self, event: Event, reaction: ReactionTemplate) -> Any:
         logger.info(f'DummyReactionHandler.handle Called')
+        return event
 
 
 global_reactions_event_bus = ReactionsEventBus()

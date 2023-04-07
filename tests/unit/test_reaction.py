@@ -19,6 +19,7 @@ from unittest.mock import patch, Mock
 from uuid import uuid4
 
 import pytest
+import pytest_asyncio
 
 from orchd_sdk.errors import ReactionError, SinkError
 from orchd_sdk.models import Event, SinkTemplate
@@ -51,12 +52,12 @@ def dummy_sink_template_list() -> List[SinkTemplate]:
     ]
 
 
-@pytest.fixture(scope='function')
-def reaction_sink_manager():
+@pytest_asyncio.fixture(scope='function')
+async def reaction_sink_manager():
     reaction = DummyReaction()
-    reaction.init()
+    await reaction.init()
     yield ReactionSinkManager(reaction)
-    reaction.close()
+    await reaction.close()
 
 
 class TestReaction:
@@ -145,9 +146,14 @@ class TestReaction:
         assert reaction.disposable is None
         assert len(reaction_event_bus._subject.observers) == 0
 
-    def test_status_must_be_RUNNING_if_activated_after_stopping(self, reaction_event_bus):
+    @pytest.mark.asyncio
+    async def test_status_must_be_RUNNING_if_activated_after_stopping(self, reaction_event_bus):
         reaction = DummyReaction()
-        reaction.stop()
+        await reaction.init()
+        reaction.activate(reaction_event_bus)
+        await reaction.stop()
+
+        assert reaction.state == ReactionState.STOPPED
 
         reaction.activate(reaction_event_bus)
         assert reaction.state == ReactionState.RUNNING
@@ -185,7 +191,7 @@ class TestReaction:
     @pytest.mark.asyncio
     async def test_must_unregister_from_bus_on_close(self, reaction_event_bus):
         reaction = DummyReaction()
-        reaction.init()
+        await reaction.init()
         reaction.activate(reaction_event_bus)
 
         assert len(reaction_event_bus._subject.observers) == 1
