@@ -24,6 +24,7 @@ from abc import abstractmethod, ABC
 from asyncio import AbstractEventLoop
 from typing import Any, Dict, List, Union, Tuple
 
+from reactivex import Observable
 from reactivex.observer import Observer
 from reactivex.subject import Subject
 
@@ -69,7 +70,8 @@ class ReactionHandler(ABC):
     """
 
     @abstractmethod
-    def handle(self, event: Event, reaction: ReactionTemplate) -> None:
+    def handle(self, event: Observable[Event], reaction: ReactionTemplate) \
+            -> Observable[Event]:
         """
         Code to be executed as an reaction to an event.
 
@@ -254,8 +256,10 @@ class DummyReactionHandler(ReactionHandler):
     """
     A Dummy ReactionHandler that is used in system tests.
     """
-    def handle(self, event: Event, reaction: ReactionTemplate) -> Any:
+    def handle(self, event: Observable[Event], reaction: ReactionTemplate) \
+            -> Observable[Event]:
         logger.info(f'DummyReactionHandler.handle Called')
+        return event
 
 
 global_reactions_event_bus = ReactionsEventBus()

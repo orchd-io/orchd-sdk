@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1]
 
+- Orchd Reaction handlers returns an Rx Observable so that it can be chained with other reactions.
 - OrchdAgentClient - Orchd Agent Client to interact with Orchd Agent API.
 - orchd-sdk CLI for creating Orchd Projects, Sensors, Reactions and Sinks boilerplate code.
 - Initial version of Reaction, Reaction Sinks, Sensor, Communicators, Events and EventBus.
