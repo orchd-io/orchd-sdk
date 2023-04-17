@@ -5,7 +5,7 @@ name: Build Packages
 
 on:
   push:
-    branches: [ master, ci ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -52,10 +52,10 @@ jobs:
     - name: Build Packages
       run: |
         python setup.py sdist bdist_wheel
-#    - name: Deploy to PyPi
-#      env:
-#        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-#        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-#      run: |
-#        pip install twine
-#        twine upload ./dist/*
+    - name: Deploy to PyPi
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        pip install twine
+        twine upload ./dist/*
