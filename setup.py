@@ -21,6 +21,7 @@ version = open('src/orchd_sdk/VERSION').read().strip()
 author = "Mathias Santos de Brito"
 
 requirements = [
+    'click',
     'reactivex',
     'pydantic',
     'GitPython',
