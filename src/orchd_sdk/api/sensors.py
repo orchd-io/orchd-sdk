@@ -10,8 +10,8 @@ SENSORS_BASE_ROUTE = '/sensor/'
 
 class SensorClient:
 
-    def __init__(self, orchd_client):
-        self.orchd_client = orchd_client
+    def __init__(self, client_adapter):
+        self.orchd_client = client_adapter
 
     async def get_sensor_templates(self):
         templates = await self.orchd_client.get(SENSOR_TEMPLATE_BASE_ROUTE)

@@ -1,7 +1,9 @@
 import json
+from abc import abstractmethod, ABC
 
 import aiohttp
-from pydantic import parse_obj_as
+import pydantic
+from pydantic import parse_obj_as, BaseModel, Field
 
 from orchd_sdk.api.events import EventClient
 from orchd_sdk.api.reactions import ReactionClient
@@ -31,7 +33,33 @@ class HTTPEventStream:
         await self.response.release()
 
 
-class OrchdAgentClient:
+class OrchdAbstractClientAdpter(ABC):
+    @abstractmethod
+    def _url(self, path: str):
+        pass
+
+    @abstractmethod
+    async def get(self, path: str):
+        pass
+
+    @abstractmethod
+    async def post(self, path: str, data: dict):
+        pass
+
+    @abstractmethod
+    async def delete(self, path: str):
+        pass
+
+    @abstractmethod
+    async def put(self, path: str, data: dict):
+        pass
+
+    @abstractmethod
+    async def stream(self, path: str):
+        pass
+
+
+class OrchdHttpClientAdapter(OrchdAbstractClientAdpter):
 
     def __init__(self, host: str, port: int, token: str = None):
         self._host = host
@@ -78,3 +106,36 @@ class OrchdAgentClient:
     async def close(self):
         await self._session.close()
 
+
+class OrchdZeroMQMessage(BaseModel):
+    path: Field(str, description='The path of the request, to the operation')
+    parameters: Field(dict, description='The parameters of the request')
+    payload: Field(dict, description='The payload of the request')
+
+
+class OrchdZeroMQAdpater(OrchdAbstractClientAdpter):
+
+    def _url(self, path: str):
+        pass
+
+    async def get(self, path: str):
+        pass
+
+    async def post(self, path: str, data: dict):
+        pass
+
+    async def delete(self, path: str):
+        pass
+
+    async def put(self, path: str, data: dict):
+        pass
+
+    async def stream(self, path: str):
+        pass
+
+
+def adpter_factory(adpter_type: str, host: str, port: int, token: str = None):
+    if adpter_type == 'http':
+        return OrchdHttpClientAdapter(host, port, token)
+    else:
+        raise NotImplementedError

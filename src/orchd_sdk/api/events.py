@@ -7,8 +7,8 @@ EVENTS_BASE_ROUTE = '/events/'
 
 class EventClient:
 
-    def __init__(self, orch_client):
-        self.orchd_client = orch_client
+    def __init__(self, client_apater):
+        self.orchd_client = client_apater
 
     async def propagate(self, event_name: str, event_data: Dict):
         await self.orchd_client.post(EVENTS_BASE_ROUTE,

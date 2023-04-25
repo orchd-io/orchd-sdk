@@ -13,7 +13,7 @@
 # WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+import datetime
 import uuid
 
 from typing import Dict, List, Any, Union, Optional
@@ -66,6 +66,19 @@ class Event(BaseModel):
         regex=r'^\w[\w\._\-]+$',
         example='io.orchd.events.system.Test'
     )
+
+    local_timestamp: datetime.datetime = Field(
+        title='Local Timestamp',
+        description='Timestamp of the event in the local system.',
+        example='2021-09-01T12:00:00.000Z'
+    )
+
+    logical_clock: int = Field(
+        title='Logical Clock',
+        description='Logical Clock of the event.',
+        example=1
+    )
+
     data: Dict[str, Any] = Field(
         default_factory=dict,
         title='Event Data',

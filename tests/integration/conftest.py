@@ -3,7 +3,7 @@ import uuid
 import pytest
 import pytest_asyncio
 
-from orchd_sdk.api import OrchdAgentClient
+from orchd_sdk.api import adpter_factory
 from orchd_sdk.models import ReactionTemplate, SinkTemplate, SensorTemplate
 from orchd_sdk.reaction import DummyReaction
 from orchd_sdk.sensor import DummySensor
@@ -11,8 +11,8 @@ from orchd_sdk.sink import DummySink
 
 
 @pytest_asyncio.fixture(scope='function')
-async def client() -> OrchdAgentClient:
-    cli = OrchdAgentClient('127.0.0.1', 8000)
+async def client() -> OrchdHttpCom:
+    cli = OrchdHttpCom('127.0.0.1', 8000)
     yield cli
     await cli.close()
 

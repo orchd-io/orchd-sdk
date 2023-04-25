@@ -19,6 +19,7 @@ import uuid
 from abc import ABC, abstractmethod
 from asyncio import Task
 
+from orchd_sdk.clock import LamportClock
 from orchd_sdk.reaction import global_reactions_event_bus, ReactionsEventBus
 
 from orchd_sdk.models import Event, SensorTemplate, Sensor
@@ -48,9 +49,10 @@ class AbstractCommunicator(ABC):
         self.id = str(uuid.uuid4())
 
     @abstractmethod
-    async def emit_event(self, event: Event):
+    async def emit_event(self, event: Event, clock=None):
         """
         Emits the event in the orchd agent's Reactor.
+        :param clock: A LamportClock instance to be updated.
         :param event: Event to be emitted
         """
 
@@ -65,6 +67,13 @@ class AbstractCommunicator(ABC):
         """
         Authenticates the sensor against the Orchd Agent.
         """
+
+    def update_clock(self, clock: LamportClock):
+        """
+        Updates the clock with the clock received from the Orchd Agent.
+        :param clock: A LamportClock instance.
+        """
+        clock.tick()
 
 
 class SensorState:
@@ -94,6 +103,7 @@ class AbstractSensor(ABC):
         self._events_counter = -1
         self._events_forwarded = -1
         self._events_discarded = -1
+        self.clock = LamportClock()
 
     @abstractmethod
     async def sense(self):
@@ -166,7 +176,8 @@ class DummySensor(AbstractSensor):
     async def sense(self):
         await asyncio.sleep(1)
         await self.communicator.emit_event(
-            Event(event_name='io.orchd.events.system.Test', data={'dummy': 'data'})
+            Event(event_name='io.orchd.events.system.Test', data={'dummy': 'data'}),
+            clock=self.clock
         )
 
 
@@ -187,9 +198,10 @@ class LocalCommunicator(AbstractCommunicator):
         super().__init__()
         self.event_bus = event_bus or global_reactions_event_bus
 
-    async def emit_event(self, event: Event):
+    async def emit_event(self, event: Event, clock=None):
         """
         Emits an event using the global ReactionsEventBus
+        :param clock: Clock is ignored in the LocalCommunicator
         :param event: Event to emit.
         """
         self.event_bus.event(event)

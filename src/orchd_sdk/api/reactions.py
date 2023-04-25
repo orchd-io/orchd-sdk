@@ -7,8 +7,8 @@ from orchd_sdk.models import ReactionInfo, ReactionTemplate, Ref
 
 class ReactionClient:
 
-    def __init__(self, orchd_client):
-        self.orchd_client = orchd_client
+    def __init__(self, client_adapter):
+        self.orchd_client = client_adapter
 
     async def get_reactions(self) -> List[ReactionInfo]:
         reactions = await self.orchd_client.get('/reactions')

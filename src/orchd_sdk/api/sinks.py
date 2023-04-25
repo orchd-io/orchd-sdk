@@ -8,8 +8,8 @@ SINK_TEMPLATES_BASE_ROUTE = '/sink_templates'
 
 
 class SinkClient:
-    def __init__(self, orchd_agent_client):
-        self.client = orchd_agent_client
+    def __init__(self, client_apadter):
+        self.client = client_apadter
 
     async def add_sink_template(self, template: SinkTemplate) -> SinkTemplate:
         response = await self.client.post(SINK_TEMPLATES_BASE_ROUTE, template.dict())
