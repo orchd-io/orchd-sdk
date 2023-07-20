@@ -63,7 +63,7 @@ class Event(BaseModel):
     event_name: str = Field(
         title='Event Name',
         description='A unique/namespaced name for the event.',
-        regex=r'^\w[\w\._\-]+$',
+        pattern=r'^\w[\w\._\-]+$',
         example='io.orchd.events.system.Test'
     )
     data: Dict[str, Any] = Field(
@@ -157,7 +157,7 @@ class ReactionTemplate(BaseModel):
     name: str = Field(
         title='Reaction Template Name',
         description='A unique/namespaced name for the Reaction Template',
-        regex=r'^\w[\w\._\-]+$',
+        pattern=r'^\w[\w\._\-]+$',
         example='io.orchd.reaction_template.DummyTemplate'
     )
     version: str = Field(
@@ -228,7 +228,7 @@ class SensorTemplate(BaseModel):
     name: str = Field(
         title='Sensor\'s Name',
         description='The namespaced name of the Sensor',
-        regex=r'^\w[\w\._\-]+$',
+        patter=r'^\w[\w\._\-]+$',
         example='io.orchd.sensor.template.DummySensorTemplate'
     )
 
