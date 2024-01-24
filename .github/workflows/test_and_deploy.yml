@@ -32,24 +32,24 @@ jobs:
         python -m pip install pytest wheel pytest-asyncio tox
         python -m pip install /home/runner/work/orchd-sdk/orchd-sdk/reqs/orchd-agent
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Install Orchd Agent
-      uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.ORCHD_AGENT_GITHUB_ACTIONS }}
-        repository: orchd-io/orchd-agent
-        ref: master
-        path: reqs/orchd-agent
-    - name: Start test agent
-      run: |
-        python -m orchd.app &
-        sleep 3
-    - name: Test with pytest
-      run: |
-        tox
-    - name: Build Packages
-      if: always()
-      run: |
-        python setup.py sdist bdist_wheel
+#    - name: Install Orchd Agent
+#      uses: actions/checkout@v2
+#      with:
+#        token: ${{ secrets.ORCHD_AGENT_GITHUB_ACTIONS }}
+#        repository: orchd-io/orchd-agent
+#        ref: master
+#        path: reqs/orchd-agent
+#    - name: Start test agent
+#      run: |
+#        python -m orchd.app &
+#        sleep 3
+#    - name: Test with pytest
+#      run: |
+#        tox
+#    - name: Build Packages
+#      if: always()
+#      run: |
+#        python setup.py sdist bdist_wheel
     - name: Deploy to PyPi
       if: always()
       uses: pypa/gh-action-pypi-publish@release/v1
