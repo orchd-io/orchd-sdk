@@ -44,6 +44,7 @@ jobs:
       run: |
         tox
     - name: Test build
+      if: always()
       run: |
         python setup.py sdist bdist_wheel
     - name: Test deploy
@@ -51,5 +52,6 @@ jobs:
         TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
       run: |
+        if: always()
         pip install twine
         twine upload --skip-existing -r testpypi ./dist/*

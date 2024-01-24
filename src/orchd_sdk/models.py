@@ -16,7 +16,7 @@
 
 import uuid
 
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union, Optional, ClassVar
 
 from pydantic import Field, BaseModel
 
@@ -44,7 +44,8 @@ class Ref(BaseModel):
         example='0ccb8b84-c52d-4a6a-af6b-a2c273745825'
     )
 
-    metadata: Any = Field(
+    metadata: Optional[dict] = Field(
+        default=None,
         title='ID Metadata',
         description='Optional field with Key/Value pairs with additional info about '
                     'the id.',
@@ -348,7 +349,7 @@ class Project(BaseModel):
         kwargs['main_package'] = main_package_name
         super().__init__(**kwargs)
 
-    orchd_sdk_version = orchd_sdk.version()
+    orchd_sdk_version: ClassVar[str] = orchd_sdk.version()
     version: str = '0.0'
     author: str = 'unknown'
     description: str = 'no description'
@@ -372,4 +373,3 @@ class Project(BaseModel):
 
     def add_sink(self, name: str, class_: str):
         self.sinks[name] = class_
-
