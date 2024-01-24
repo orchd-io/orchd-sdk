@@ -25,7 +25,7 @@ class SensorClient:
     async def add_sensor_template(self,
                                   template: SensorTemplate) -> SensorTemplate:
         response = await self.orchd_client.post(SENSOR_TEMPLATE_BASE_ROUTE,
-                                                template.dict())
+                                                template.model_dump())
         return SensorTemplate(**response)
 
     async def remove_sensor_template(self, template_id: str) -> str:
@@ -43,7 +43,7 @@ class SensorClient:
 
     async def add_sensor(self, template_id: str) -> Sensor:
         response = await self.orchd_client.post(
-            f'{SENSORS_BASE_ROUTE}', data=Ref(id=template_id).dict())
+            f'{SENSORS_BASE_ROUTE}', data=Ref(id=template_id).model_dump())
         return Sensor(**response)
 
     async def remove_sensor(self, sensor_id: str) -> str:

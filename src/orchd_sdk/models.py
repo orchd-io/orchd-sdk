@@ -16,7 +16,7 @@
 
 import uuid
 
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union, Optional, ClassVar
 
 from pydantic import Field, BaseModel
 
@@ -44,7 +44,8 @@ class Ref(BaseModel):
         example='0ccb8b84-c52d-4a6a-af6b-a2c273745825'
     )
 
-    metadata: Any = Field(
+    metadata: Optional[dict] = Field(
+        default=None,
         title='ID Metadata',
         description='Optional field with Key/Value pairs with additional info about '
                     'the id.',
@@ -63,7 +64,7 @@ class Event(BaseModel):
     event_name: str = Field(
         title='Event Name',
         description='A unique/namespaced name for the event.',
-        regex=r'^\w[\w\._\-]+$',
+        pattern=r'^\w[\w\._\-]+$',
         example='io.orchd.events.system.Test'
     )
     data: Dict[str, Any] = Field(
@@ -157,7 +158,7 @@ class ReactionTemplate(BaseModel):
     name: str = Field(
         title='Reaction Template Name',
         description='A unique/namespaced name for the Reaction Template',
-        regex=r'^\w[\w\._\-]+$',
+        pattern=r'^\w[\w\._\-]+$',
         example='io.orchd.reaction_template.DummyTemplate'
     )
     version: str = Field(
@@ -228,7 +229,7 @@ class SensorTemplate(BaseModel):
     name: str = Field(
         title='Sensor\'s Name',
         description='The namespaced name of the Sensor',
-        regex=r'^\w[\w\._\-]+$',
+        patter=r'^\w[\w\._\-]+$',
         example='io.orchd.sensor.template.DummySensorTemplate'
     )
 
@@ -348,7 +349,7 @@ class Project(BaseModel):
         kwargs['main_package'] = main_package_name
         super().__init__(**kwargs)
 
-    orchd_sdk_version = orchd_sdk.version()
+    orchd_sdk_version: ClassVar[str] = orchd_sdk.version()
     version: str = '0.0'
     author: str = 'unknown'
     description: str = 'no description'
@@ -372,4 +373,3 @@ class Project(BaseModel):
 
     def add_sink(self, name: str, class_: str):
         self.sinks[name] = class_
-

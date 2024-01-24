@@ -19,7 +19,7 @@ class ReactionClient:
         return ReactionInfo(**reaction)
 
     async def add_reaction(self, template_id: str) -> ReactionInfo:
-        response = await self.orchd_client.post('/reactions', Ref(id=template_id).dict())
+        response = await self.orchd_client.post('/reactions', Ref(id=template_id).model_dump_json())
         return ReactionInfo(**response)
 
     async def remove_reaction(self, reaction_id: str) -> str:
