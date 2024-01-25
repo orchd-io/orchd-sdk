@@ -35,20 +35,20 @@ def test_event():
 
 @pytest.fixture(scope='function')
 def dummy_reaction_template():
-    yield DummyReaction.template.copy()
+    yield DummyReaction.template.model_copy()
 
 
 @pytest.fixture(scope='function')
 def dummy_sink_template():
-    yield DummySink.template.copy()
+    yield DummySink.template.model_copy()
 
 
 @pytest.fixture(scope='function')
 def dummy_sink_template_list() -> List[SinkTemplate]:
     yield [
-        DummySink.template.copy(update={'id': str(uuid4())}),
-        DummySink.template.copy(update={'id': str(uuid4())}),
-        DummySink.template.copy(update={'id': str(uuid4())})
+        DummySink.template.model_copy(update={'id': str(uuid4())}),
+        DummySink.template.model_copy(update={'id': str(uuid4())}),
+        DummySink.template.model_copy(update={'id': str(uuid4())})
     ]
 
 
@@ -90,7 +90,7 @@ class TestReaction:
 
     @pytest.mark.asyncio
     async def test_initialization_must_fail_if_sink_class_is_not_in_pythonpath(self, dummy_reaction_template):
-        sink_template_with_nonexistent_class: SinkTemplate = DummySink.template.copy()
+        sink_template_with_nonexistent_class: SinkTemplate = DummySink.template.model_copy()
         sink_template_with_nonexistent_class.sink_class = 'nonexistent.Class'
         dummy_reaction_template.sinks = [sink_template_with_nonexistent_class]
 

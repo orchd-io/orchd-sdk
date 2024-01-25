@@ -1,7 +1,7 @@
 import json
 
 import aiohttp
-from pydantic import parse_obj_as
+from pydantic import parse_obj_as, TypeAdapter
 
 from orchd_sdk.api.events import EventClient
 from orchd_sdk.api.reactions import ReactionClient
@@ -24,8 +24,9 @@ class HTTPEventStream:
         return chunk.decode('utf-8')
 
     async def next(self):
+        adapter = TypeAdapter(Event)
         event = json.loads(await self.__anext__())
-        return parse_obj_as(Event, event)
+        return adapter.validate_python(event)
 
     async def close(self):
         await self.response.release()

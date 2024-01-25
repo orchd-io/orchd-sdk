@@ -19,21 +19,21 @@ async def client() -> OrchdAgentClient:
 
 @pytest.fixture(scope='function')
 def reaction_template():
-    template = ReactionTemplate(**DummyReaction.template.dict())
+    template = ReactionTemplate(**DummyReaction.template.model_dump())
     template.id = str(uuid.uuid4())
     return template
 
 
 @pytest.fixture(scope='function')
 def sink_template():
-    sink = SinkTemplate(**DummySink.template.dict())
+    sink = SinkTemplate(**DummySink.template.model_dump())
     sink.id = str(uuid.uuid4())
     return sink
 
 
 @pytest.fixture(scope='function')
 def sensor_template():
-    sensor_template = SensorTemplate(**DummySensor.template.dict())
+    sensor_template = SensorTemplate(**DummySensor.template.model_dump())
     sensor_template.id = str(uuid.uuid4())
     return sensor_template
 

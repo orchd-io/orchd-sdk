@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import parse_obj_as
+from pydantic import parse_obj_as, TypeAdapter
 
 from orchd_sdk.models import SensorTemplate, Ref, Sensor
 
@@ -14,8 +14,9 @@ class SensorClient:
         self.orchd_client = orchd_client
 
     async def get_sensor_templates(self):
+        adapter = TypeAdapter(List[SensorTemplate])
         templates = await self.orchd_client.get(SENSOR_TEMPLATE_BASE_ROUTE)
-        return parse_obj_as(List[SensorTemplate], templates)
+        return adapter.validate_python(templates)
 
     async def get_sensor_template(self, template_id: str) -> SensorTemplate:
         template = await self.orchd_client.get(
@@ -33,9 +34,10 @@ class SensorClient:
             f'{SENSOR_TEMPLATE_BASE_ROUTE}{template_id}/')
         return response
 
-    async def get_sensors(self) -> List[Sensor]:
+    async def get_sensors(self):
+        adapter = TypeAdapter(List[Sensor])
         sensors = await self.orchd_client.get(SENSORS_BASE_ROUTE)
-        return parse_obj_as(List[Sensor], sensors)
+        return adapter.validate_python(sensors)
 
     async def get_sensor(self, sensor_id: str) -> Sensor:
         sensor = await self.orchd_client.get(f'{SENSORS_BASE_ROUTE}{sensor_id}/')

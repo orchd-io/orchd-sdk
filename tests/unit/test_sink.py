@@ -27,6 +27,6 @@ def test_sink_factory():
     assert isinstance(sink, AbstractSink) is True
 
     with pytest.raises(SinkError):
-        template: SinkTemplate = DummySink.template.copy()
+        template: SinkTemplate = DummySink.template.model_copy()
         template.sink_class = 'not.existent.Class'
         sink_factory(template)

@@ -18,7 +18,7 @@ import uuid
 
 from typing import Dict, List, Any, Union, Optional, ClassVar
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, ConfigDict
 
 import orchd_sdk
 from orchd_sdk import util
@@ -39,17 +39,21 @@ class Ref(BaseModel):
     """
 
     id: str = Field(
-        title='ID',
-        description='An ID.',
-        example='0ccb8b84-c52d-4a6a-af6b-a2c273745825'
+        json_schema_extra={
+            'title': 'ID',
+            'description': 'An ID.',
+            'example': '0ccb8b84-c52d-4a6a-af6b-a2c273745825'
+        }
     )
 
     metadata: Optional[dict] = Field(
         default=None,
-        title='ID Metadata',
-        description='Optional field with Key/Value pairs with additional info about '
-                    'the id.',
-        example={'related_model': 'SomeModelClass'}
+        json_schema_extra={
+            'title': 'ID Metadata',
+            'description': 'Optional field with Key/Value pairs with additional info about '
+                           'the id.',
+            'example': {'related_model': 'SomeModelClass'}
+        }
     )
 
 
@@ -61,25 +65,28 @@ class Event(BaseModel):
     an unique ID. They are propagated into the Orchd System usually
     by Sensors and captured by Reactions that can react to it.
     """
-    event_name: str = Field(
-        title='Event Name',
-        description='A unique/namespaced name for the event.',
-        pattern=r'^\w[\w\._\-]+$',
-        example='io.orchd.events.system.Test'
+    model_config = ConfigDict(extra='forbid')
+    event_name: str = Field(json_schema_extra={
+        'title': 'Event Name',
+        'description': 'A unique/namespaced name for the event.',
+        'pattern': r'^\w[\w\._\-]+$',
+        'example': 'io.orchd.events.system.Test'
+    }
     )
     data: Dict[str, Any] = Field(
         default_factory=dict,
-        title='Event Data',
-        description='Data attached to the event in the form of key/value pairs.'
+        json_schema_extra={
+            'title': 'Event Data',
+            'description': 'Data attached to the event in the form of key/value pairs.'
+        }
     )
     id: str = Field(
         default_factory=uuid_str_factory,
-        title='Event ID',
-        description='Event Unique Identifier.'
+        json_schema_extra={
+            'title': 'Event ID',
+            'description': 'Event Unique Identifier.'
+        }
     )
-
-    class Config:
-        additional_properties = False
 
 
 class SinkTemplate(BaseModel):
@@ -91,33 +98,43 @@ class SinkTemplate(BaseModel):
     """
     id: str = Field(
         default_factory=uuid_str_factory,
-        title='Sink Template Id',
-        description='Id of the Sink Template',
-        example='3d2077c7-dbad-4975-b769-a8da870cf5f6'
+        json_schema_extra={
+            'title': 'Sink Template Id',
+            'description': 'Id of the Sink Template',
+            'example': '3d2077c7-dbad-4975-b769-a8da870cf5f6'
+        }
     )
 
     name: str = Field(
-        title='Sink\'s Template name',
-        description='A descriptive name for the Sink.',
-        example='io.orchd.sinks.MyMainSink'
+        json_schema_extra={
+            'title': 'Sink\'s Template name',
+            'description': 'A descriptive name for the Sink.',
+            'example': 'io.orchd.sinks.MyMainSink'
+        }
     )
 
     version: str = Field(
-        title='Sink\'s Template Version',
-        description='Version of this Sink.',
-        example='0,1'
+        json_schema_extra={
+            'title': 'Sink\'s Template Version',
+            'description': 'Version of this Sink.',
+            'example': '0.1'
+        }
     )
 
     sink_class: str = Field(
-        title='Sink Template Class',
-        description='Sink Class to be used to instantiate sinks.',
-        example='orchd_sdk.sink.DummySink'
+        json_schema_extra={
+            'title': 'Sink Template Class',
+            'description': 'Sink Class to be used to instantiate sinks.',
+            'example': 'orchd_sdk.sink.DummySink'
+        }
     )
 
     properties: Dict[str, str] = Field(
-        title='Sink Properties',
-        description='key/value pairs with Sink specific properties',
-        example={'endpoint': 'http//www.example.com/test'}
+        json_schema_extra={
+            'title': 'Sink Properties',
+            'description': 'key/value pairs with Sink specific properties',
+            'example': {'endpoint': 'http//www.example.com/test'}
+        }
     )
 
 
@@ -130,18 +147,22 @@ class Sink(BaseModel):
     """
     id: str = Field(
         default_factory=uuid_str_factory,
-        title='Sink Id',
-        description='Id of the Sink',
-        example='3d2077c7-dbad-4975-b769-a8da870cf5f6'
+        json_schema_extra={
+            'title': 'Sink Id',
+            'description': 'Id of the Sink',
+            'example': '3d2077c7-dbad-4975-b769-a8da870cf5f6'
+        }
     )
 
     template: SinkTemplate = Field(
-        title='Sink Template',
-        description='Sink Template used to instantiate the Sink',
-        example=SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
-                             name='io.orchd.sinks.DummySink',
-                             version='0.1',
-                             properties={'endpoint': 'https://example.com/test'})
+        json_schema_extra={
+            'title': 'Sink Template',
+            'description': 'Sink Template used to instantiate the Sink',
+            'example': SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+                                    name='io.orchd.sinks.DummySink',
+                                    version='0.1',
+                                    properties={'endpoint': 'https://example.com/test'})
+        }
     )
 
 
@@ -156,56 +177,72 @@ class ReactionTemplate(BaseModel):
     - Service Down
     """
     name: str = Field(
-        title='Reaction Template Name',
-        description='A unique/namespaced name for the Reaction Template',
-        pattern=r'^\w[\w\._\-]+$',
-        example='io.orchd.reaction_template.DummyTemplate'
+        json_schema_extra={
+            'title': 'Reaction Template Name',
+            'description': 'A unique/namespaced name for the Reaction Template',
+            'pattern': r'^\w[\w\._\-]+$',
+            'example': 'io.orchd.reaction_template.DummyTemplate'
+        }
     )
     version: str = Field(
-        title='Template Version',
-        description='Version of this reaction template.',
-        example='1.0'
+        json_schema_extra={
+            'title': 'Template Version',
+            'description': 'Version of this reaction template.',
+            'example': '1.0'
+        }
     )
     handler: str = Field(
-        title='Handler Class',
-        description='The full name/path of the handler Class',
-        example='orchd_sdk.reaction.DummyReactionHandler'
+        json_schema_extra={
+            'title': 'Handler Class',
+            'description': 'The full name/path of the handler Class',
+            'example': 'orchd_sdk.reaction.DummyReactionHandler'
+        }
     )
     triggered_on: List[str] = Field(
-        title='Triggered On',
-        description='List of event names that triggers the handler.',
-        example=['io.orchd.events.system.Test']
+        json_schema_extra={
+            'title': 'Triggered On',
+            'description': 'List of event names that triggers the handler.',
+            'example': ['io.orchd.events.system.Test']
+        }
     )
     handler_parameters: Dict[str, str] = Field(
         default_factory=dict,
-        title='Handler Parameters',
-        description='Parameters to be passed to the handler in the form key/value '
-                    'pair.',
-        example={'test_type': 'full'},
+        json_schema_extra={
+            'title': 'Handler Parameters',
+            'description': 'Parameters to be passed to the handler in the form key/value '
+                           'pair.',
+            'example': {'test_type': 'full'},
+        }
     )
 
     sinks: Optional[List[SinkTemplate]] = Field(
-        title='Sinks',
         default_factory=list,
-        description='Sinks used by reactions created from this template.',
-        example=[SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
-                              name='io.orchd.sinks.DummySink',
-                              version='0.1',
-                              properties={'endpoint': 'https://example.com/test'})]
+        json_schema_extra={
+            'title': 'Sinks',
+            'description': 'Sinks used by reactions created from this template.',
+            'example': [SinkTemplate(sink_class='orchd_sdk.sink.DummySink',
+                                     name='io.orchd.sinks.DummySink',
+                                     version='0.1',
+                                     properties={'endpoint': 'https://example.com/test'})]
+        }
     )
 
     active: bool = Field(
         default=True,
-        title='Active',
-        description='Activate/Deactivate the availability of the template to create '
-                    'new Reactions.',
-        example=True
+        json_schema_extra={
+            'title': 'Active',
+            'description': 'Activate/Deactivate the availability of the template to create '
+                           'new Reactions.',
+            'example': True
+        }
     )
     id: str = Field(
         default_factory=uuid_str_factory,
-        title='Reaction Template ID',
-        description='Unique Reaction Template identifier.',
-        example='0a0866da-2a41-41a3-bcd9-9be9eedb2525'
+        json_schema_extra={
+            'title': 'Reaction Template ID',
+            'description': 'Unique Reaction Template identifier.',
+            'example': '0a0866da-2a41-41a3-bcd9-9be9eedb2525'
+        }
     )
 
 
@@ -220,53 +257,69 @@ class SensorTemplate(BaseModel):
     that can be used by the sensor to configure its behavior.
     """
     id: str = Field(
-        title='Id',
-        description='Unique identification of the Sensor',
-        example='0ba3376f-64b8-4ecf-a579-66c353100e1c',
-        default_factory=uuid_str_factory
+        default_factory=uuid_str_factory,
+        json_schema_extra={
+            'title': 'Id',
+            'description': 'Unique identification of the Sensor',
+            'example': '0ba3376f-64b8-4ecf-a579-66c353100e1c'
+        }
     )
 
     name: str = Field(
-        title='Sensor\'s Name',
-        description='The namespaced name of the Sensor',
-        patter=r'^\w[\w\._\-]+$',
-        example='io.orchd.sensor.template.DummySensorTemplate'
+        json_schema_extra={
+            'title': 'Sensor\'s Name',
+            'description': 'The namespaced name of the Sensor',
+            'pattern': r'^\w[\w\._\-]+$',
+            'example': 'io.orchd.sensor.template.DummySensorTemplate'
+        }
     )
 
     version: str = Field(
-        title='Version',
-        description='Sensor\'s version',
-        example='1.0'
+        json_schema_extra={
+            'title': 'Version',
+            'description': 'Sensor\'s version',
+            'example': '1.0'
+        }
     )
 
     sensor: str = Field(
-        title='Sensor Class',
-        description='Class that implements the Sensor',
-        example='orchd_sdk.sensor.DummySensor'
+        json_schema_extra={
+            'title': 'Sensor Class',
+            'description': 'Class that implements the Sensor',
+            'example': 'orchd_sdk.sensor.DummySensor'
+        }
     )
 
     sensing_interval: float = Field(
-        title='Sensing Interval',
-        description='Interval between two consecutive sense calls in seconds.',
-        example=0.1
+        json_schema_extra={
+            'title': 'Sensing Interval',
+            'description': 'Interval between two consecutive sense calls in seconds.',
+            'example': 0.1
+        }
     )
 
     communicator: str = Field(
-        title='Communicator Class',
-        description='Class of the Communicator to used.',
-        example='orchd_sdk.sensor.LocalCommunicator'
+        json_schema_extra={
+            'title': 'Communicator Class',
+            'description': 'Class of the Communicator to used.',
+            'example': 'orchd_sdk.sensor.LocalCommunicator'
+        }
     )
 
     parameters: Dict[str, Union[str, int, float, List[Union[str, int, float]]]] = \
-        Field(title='Sensor Parameters',
-              description='Parameters to be used by the Sensor during Runtime',
-              example={'poll_interval': 3}
+        Field(json_schema_extra={
+            'title': 'Sensor Parameters',
+            'description': 'Parameters to be used by the Sensor during Runtime',
+            'example': {'poll_interval': 3}
+        }
     )
 
     description: str = Field(
-        title='Description',
-        description='Description of the Sensor',
-        example='Sense for changes in a Dummy value in the System'
+        json_schema_extra={
+            'title': 'Description',
+            'description': 'Description of the Sensor',
+            'example': 'Sense for changes in a Dummy value in the System'
+        }
     )
 
 
@@ -275,28 +328,36 @@ class ReactionInfo(BaseModel):
     Represents the state and info of an Reaction instance.
     """
     id: str = Field(
-        title='Reaction Id',
-        description='Id of the Reaction.',
-        example='cdc51818-6ebe-4931-bed2-2a297c70681e'
+        json_schema_extra={
+            'title': 'Reaction Id',
+            'description': 'Id of the Reaction.',
+            'example': 'cdc51818-6ebe-4931-bed2-2a297c70681e'
+        }
     )
 
     state: str = Field(
-        title='State',
-        description='Current Reaction state.',
-        example='READY'
+        json_schema_extra={
+            'title': 'State',
+            'description': 'Current Reaction state.',
+            'example': 'READY'
+        }
     )
 
     template: ReactionTemplate = Field(
-        title='Reaction Template',
-        description='Reaction Template used to instantiate this Reaction.',
-        example='d818d8ff-f859-4239-8602-103563b8a2ff'
+        json_schema_extra={
+            'title': 'Reaction Template',
+            'description': 'Reaction Template used to instantiate this Reaction.',
+            'example': 'd818d8ff-f859-4239-8602-103563b8a2ff'
+        }
     )
 
     sinks_instances: List[Sink] = Field(
-        title='Sinks\' IDs',
-        description='Id of Sinks associated to this reaction',
-        example=['1d1c79de-7170-4dc6-aae1-9504ea7c793e',
-                 'eaaf2065-484e-4c31-88fa-c3b422aa8927']
+        json_schema_extra={
+            'title': 'Sinks\' IDs',
+            'description': 'Id of Sinks associated to this reaction',
+            'example': ['1d1c79de-7170-4dc6-aae1-9504ea7c793e',
+                        'eaaf2065-484e-4c31-88fa-c3b422aa8927']
+        }
     )
 
 
@@ -305,44 +366,55 @@ class Sensor(BaseModel):
     Represents the state and data of a Sensor
     """
     id: str = Field(
-        title='Sensor Id',
-        description='Id of the sensor.',
-        example='7447f5f8-63f6-48d0-8537-5fae0b30015d'
+        json_schema_extra={
+            'title': 'Sensor Id',
+            'description': 'Id of the sensor.',
+            'example': '7447f5f8-63f6-48d0-8537-5fae0b30015d'
+        }
     )
 
     template: SensorTemplate = Field(
-        title='Sensor Template',
-        description='Template related to the Sensor.',
-        example='orchd_sdk.sensor.DummySensor'
+        json_schema_extra={
+            'title': 'Sensor Template',
+            'description': 'Template related to the Sensor.',
+            'example': 'orchd_sdk.sensor.DummySensor'
+        }
     )
 
     status: tuple = Field(
-        title='Sensor Status',
-        description='Current status of the Sensor.',
-        example=(2, 'READY')
+        json_schema_extra={
+            'title': 'Sensor Status',
+            'description': 'Current status of the Sensor.',
+            'example': (2, 'READY')
+        }
     )
 
     events_count: Optional[int] = Field(
-        title='Events Counter',
-        description='Number of events sensed by the sensor.',
-        example=1002
+        json_schema_extra={
+            'title': 'Events Counter',
+            'description': 'Number of events sensed by the sensor.',
+            'example': 1002
+        }
     )
 
     events_forwarded: Optional[int] = Field(
-        title='Forwarded Events',
-        description='Number of events sensed and forwarded to Orchd.',
-        example=540
+        json_schema_extra={
+            'title':  'Forwarded Events',
+            'description':  'Number of events sensed and forwarded to Orchd.',
+            'example':  540
+        }
     )
 
     events_discarded: Optional[int] = Field(
-        title='Events discarded',
-        description='Number of events sensed, captured but discarded.'
+        json_schema_extra={
+            'title': 'Events discarded',
+            'description': 'Number of events sensed, captured but discarded.'
+        }
     )
 
 
 class Project(BaseModel):
-    class Config:
-        validate_assignment = True
+    model_config = ConfigDict(validate_assignment=True)
 
     def __init__(self, **kwargs):
         main_package_name = util.kebab_case_to_snake_case(kwargs.get('name'))
@@ -355,9 +427,11 @@ class Project(BaseModel):
     description: str = 'no description'
     license: str = 'unknown'
     name: str = Field(
-        title='Name of the Project',
-        pattern='^((_?[a-z0-9])*|(_?[A-Z0-9])*|_)$',
-        default='my_orchd_project'
+        default='my_orchd_project',
+        json_schema_extra={
+            'title': 'Name of the Project',
+            'pattern': '^((_?[a-z0-9])*|(_?[A-Z0-9])*|_)$',
+        }
     )
     namespace: str = ''
     main_package: str = 'project'
