@@ -46,7 +46,7 @@ except json.JSONDecodeError:
 
 def save_project(project: Project):
     with open(f'orchd.meta.json', 'w') as fd:
-        fd.write(json.dumps(project.dict(), indent=2) + '\n\n')
+        fd.write(json.dumps(project.model_dump(), indent=2) + '\n\n')
 
 
 def snake_case_validator(_, __, value):
@@ -113,7 +113,7 @@ def generate_template(from_):
     class_name = split_name[-1]
     try:
         Class = getattr(importlib.import_module(module), class_name)
-        click.echo(Class.template.json(indent=2))
+        click.echo(Class.template.model_dump_json(indent=2))
     except ModuleNotFoundError as e:
         click.echo(f'{e}! Is the related package installed? Try "pip install the_package_containing_module"')
     except AttributeError as e:

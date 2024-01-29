@@ -129,7 +129,7 @@ class SinkTemplate(BaseModel):
         }
     )
 
-    properties: Dict[str, str] = Field(
+    properties: Dict[str, Any] = Field(
         json_schema_extra={
             'title': 'Sink Properties',
             'description': 'key/value pairs with Sink specific properties',
@@ -205,7 +205,7 @@ class ReactionTemplate(BaseModel):
             'example': ['io.orchd.events.system.Test']
         }
     )
-    handler_parameters: Dict[str, str] = Field(
+    handler_parameters: Dict[str, Any] = Field(
         default_factory=dict,
         json_schema_extra={
             'title': 'Handler Parameters',
@@ -306,8 +306,8 @@ class SensorTemplate(BaseModel):
         }
     )
 
-    parameters: Dict[str, Union[str, int, float, List[Union[str, int, float]]]] = \
-        Field(json_schema_extra={
+    parameters: Dict[str, Any] = Field(
+        json_schema_extra={
             'title': 'Sensor Parameters',
             'description': 'Parameters to be used by the Sensor during Runtime',
             'example': {'poll_interval': 3}
@@ -321,7 +321,6 @@ class SensorTemplate(BaseModel):
             'example': 'Sense for changes in a Dummy value in the System'
         }
     )
-
 
 class ReactionInfo(BaseModel):
     """
