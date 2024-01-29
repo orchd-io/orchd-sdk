@@ -19,10 +19,14 @@ import uuid
 from abc import ABC, abstractmethod
 from asyncio import Task
 
+import logging
+
+from orchd_sdk.errors import SensorFatalError
 from orchd_sdk.reaction import global_reactions_event_bus, ReactionsEventBus
 
 from orchd_sdk.models import Event, SensorTemplate, Sensor
 
+logger = logging.getLogger(__name__)
 
 class SensorError(Exception):
     """
@@ -105,8 +109,14 @@ class AbstractSensor(ABC):
 
     async def _start(self):
         while self.state == SensorState.RUNNING:
-            await self.sense()
-            await asyncio.sleep(self.sensing_interval)
+            try:
+                await self.sense()
+                await asyncio.sleep(self.sensing_interval)
+            except SensorFatalError:
+                logger.critical(f'Sensor cannot continue and will be killed! Reason: {e}')
+                return
+            except Exception as e:
+                logger.error(f'Error while sensing! Details: {e}')
 
     def start(self):
         """

@@ -37,6 +37,14 @@ class ReactionHandlerError(Exception):
     """ Raised by ReactionHandler implementations."""
 
 
+class SensorError(Exception):
+    """ Raised by Sensors to indicate an not fatal error."""
+
+
+class SensorFatalError(Exception):
+    """ Sensor fatal error. Sensor will not be available anymore."""
+
+
 class InvalidRequestError(Exception):
     """ Raised when the request is invalid."""
 
