@@ -52,15 +52,14 @@ class TestSensor:
     @pytest.mark.asyncio
     async def test_sense_awaited(self):
         """
-        Test if start calls the sense method.
+        Test if after a start the queue is consumed.
 
-        When start is called, it will call sense in a loop in a frequency
-        defined when creating the sensor (this value defaults to 0). This
-        tests ensures that sense is called (awaited since it is a coroutine)
+        When start is called, it will consume and emit events in the
+        sensor Queue.
         """
         sensor = DummySensor(DummySensor.template, LocalCommunicator())
         sense_mock = AsyncMock()
-        sensor.sense = sense_mock
+        sensor.event_queue.get = sense_mock
 
         sensor.start()
         await asyncio.sleep(0.1)  # Give a chance for start to be called

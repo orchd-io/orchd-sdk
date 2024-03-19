@@ -13,11 +13,12 @@
 # WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+from typing import Union
 
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
-from asyncio import Task
+from asyncio import Task, Queue
 
 import logging
 
@@ -90,11 +91,13 @@ class AbstractSensor(ABC):
                  communicator: AbstractCommunicator,
                  sensing_interval=0):
         self.id = str(uuid.uuid4())
+        self.event_queue = Queue()
         self.sensor_template = sensor_template
         self.communicator = communicator
         self.sensing_interval = sensor_template.sensing_interval or sensing_interval
         self._state = SensorState.READY
-        self._start_task: Task = None
+        self._process_events_task: Union[Task, None] = None
+        self._extra_tasks: list[Task] = list()
         self._events_counter = -1
         self._events_forwarded = -1
         self._events_discarded = -1
@@ -104,19 +107,22 @@ class AbstractSensor(ABC):
         """
         Sensor function to be called in order to sense an external event.
 
-        It will be called in loop while the sensor is running.
+        You will implement here the logic for getting the readings and put it
+        in the sensors queue. Once it is on the Queue the event will be emitted
+        to the reactor in the next opportunity. The Queue is asynchronous.
         """
 
-    async def _start(self):
+    async def _process_events(self):
         while self.state == SensorState.RUNNING:
             try:
-                await self.sense()
+                event = await self.event_queue.get()
+                await self.communicator.emit_event(event)
                 await asyncio.sleep(self.sensing_interval)
-            except SensorFatalError:
+            except SensorFatalError as e:
                 logger.critical(f'Sensor cannot continue and will be killed! Reason: {e}')
                 return
             except Exception as e:
-                logger.error(f'Error while sensing! Details: {e}')
+                logger.error(f'Error while emitting event! Details: {e}')
 
     def start(self):
         """
@@ -128,7 +134,7 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.RUNNING
-        self._start_task = asyncio.get_event_loop().create_task(self._start())
+        self._process_events_task = asyncio.get_event_loop().create_task(self._process_events())
 
     async def stop(self):
         """
@@ -137,6 +143,10 @@ class AbstractSensor(ABC):
         This is a basic implementation and can be overridden if necessary.
         """
         self.state = SensorState.STOPPED
+        if self._process_events_task:
+            self._process_events_task.cancel()
+        for t in self._extra_tasks:
+            t.cancel()
 
     def status(self):
         return Sensor(
@@ -174,7 +184,7 @@ class DummySensor(AbstractSensor):
 
     async def sense(self):
         await asyncio.sleep(1)
-        await self.communicator.emit_event(
+        await self.event_queue.put(
             Event(event_name='io.orchd.events.system.Test', data={'dummy': 'data'})
         )
 
